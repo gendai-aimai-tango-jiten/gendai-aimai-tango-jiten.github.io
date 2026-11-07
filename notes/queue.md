@@ -42,7 +42,7 @@ HSP (hsp)／毒親 (dokuoya)／姑息 (kosoku)／煮詰まる (nitsumaru)／気�
 ## 第8陣（済）
 ゆるブラック (yuruburakku)／ルッキズム (lookism)／多様性 (tayosei)／世間ずれ (sekenzure)／鳥肌が立つ (torihada)／天然 (tennen)／ギャップ萌え (gapmoe)／ハイスペ (haisupe)／Z世代 (zsedai)／ミーム (meme)
 
-## 第9陣
+## 第9陣（済）
 生きづらさ (ikizurasa)／地頭 (jiatama)／コスパ (kosupa)／的を射る (matowoiru)／汚名返上 (omeihenjo)／一姫二太郎 (ichihimenitaro)／号泣 (gokyu)／爆笑 (bakusho)／盛る (moru)／刺さる (sasaru)
 
 ## 第10陣
