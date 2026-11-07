@@ -23,7 +23,7 @@ BRAND_EMOJI = "1f914"
 # アクセス解析（GoatCounter）のサイトコード。https://<コード>.goatcounter.com で数字を見る
 GOATCOUNTER = "aimaijiten"
 # Google Search Console の所有権確認（HTMLタグの content の値）。空なら出さない
-GSC_VERIFY = ""
+GSC_VERIFY = "QfZTihD29VHshRbTilTzPcex8edTvSmGA6GJXm81WHs"
 OPERATOR = ("黒田悠介", "https://linktr.ee/chlorine0528")
 SISTER_SITES = [("あしたの転機観測所", "https://ashitano-tenki.github.io/", "kansoku"),
                 ("コミュニティ図鑑", "https://community-zukan.github.io/", "zukan")]
