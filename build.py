@@ -139,7 +139,8 @@ def word_card(w):
     amb = w["meters"].get("曖昧度", 0)
     return (
         f'<a class="wc" href="/words/{w["slug"]}/" data-added="{esc(w["added"])}" data-amb="{amb}" '
-        f'data-mis="{w["meters"].get("誤用度", 0)}" data-kana="{esc(w["reading"])}">'
+        f'data-mis="{w["meters"].get("誤用度", 0)}" data-kana="{esc(w["reading"])}" '
+        f'data-tags="{esc("|".join(w["tags"]))}" data-search="{esc(w["word"] + w["reading"] + w["catch"] + w["oneliner"] + "".join(w["tags"]))}">'
         f'<span class="wc-circle">{emoji(w["emoji"], "wc-emo")}</span>'
         f'<span class="wc-reading">{esc(w["reading"])}</span>'
         f'<span class="wc-word">{esc(w["word"])}</span>'
@@ -154,6 +155,17 @@ def index_page(words):
     # 既定は新着順（収録日が新しい順。同じ日なら曖昧度の高い順）
     ordered = sorted(words, key=lambda w: (w["added"], w["meters"].get("曖昧度", 0)), reverse=True)
     cards = "".join(word_card(w) for w in ordered)
+    # ヒーローの飾りは最初に収録した3語の絵文字
+    hero_words = [w for s in ("kaerukagensho", "dopagaki", "meroi") for w in words if w["slug"] == s][:3]
+    tag_count = {}
+    for w in words:
+        for t in w["tags"]:
+            tag_count[t] = tag_count.get(t, 0) + 1
+    # 年の流行タグは後ろに、それ以外は多い順
+    tag_order = sorted(tag_count, key=lambda t: (t.endswith("年流行"), -tag_count[t] if not t.endswith("年流行") else -int(t[:4])))
+    tag_chips = "".join(
+        f'<button type="button" class="chip" data-tag="{esc(t)}" aria-pressed="false">{esc(t)}<span>{tag_count[t]}</span></button>'
+        for t in tag_order)
     body = f"""
 <section class="hero"><div class="wrap hero-in">
 <h1 class="hero-title"><span class="mk">{SITE}</span></h1>
@@ -164,7 +176,7 @@ def index_page(words):
 <button type="button" class="btn btn-main" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1つ見てみる</button>
 </div>
 </div>
-<div class="hero-float" aria-hidden="true">{"".join(emoji(w["emoji"], "fl fl" + str(i)) for i, w in enumerate(words))}</div>
+<div class="hero-float" aria-hidden="true">{"".join(emoji(w["emoji"], "fl fl" + str(i)) for i, w in enumerate(hero_words))}</div>
 </section>
 
 <section class="wrap sec-block" id="words">
@@ -174,7 +186,13 @@ def index_page(words):
 <button type="button" class="sort-btn" data-sort="amb" aria-pressed="false">曖昧度順</button>
 <button type="button" class="sort-btn" data-sort="kana" aria-pressed="false">五十音順</button>
 </div></div>
+<div class="finder">
+<label class="search"><span class="sr">言葉を探す</span>{emoji("1f50d", "search-emo")}<input id="q" type="search" placeholder="言葉・読み・タグで探す" autocomplete="off"></label>
+<div class="chips" role="group" aria-label="タグで絞り込む"><button type="button" class="chip on" data-tag="" aria-pressed="true">すべて<span>{len(words)}</span></button>{tag_chips}</div>
+</div>
+<p class="result-count" id="result-count" aria-live="polite"></p>
 <div class="wgrid" id="wordlist">{cards}</div>
+<p class="empty" id="empty" hidden>見つかりませんでした。別の言葉で探してみてください。</p>
 </section>
 
 <section class="wrap sec-block">
@@ -260,7 +278,9 @@ def word_page(w, words):
 
     tldr = "".join(f"<li>{esc(t)}</li>" for t in w["tldr"])
     share_text = f"「{w['word']}」の意味、ちゃんと分かってる？ {w['catch']}"
-    others = [x for x in words if x["slug"] != w["slug"]]
+    tags = set(w["tags"])
+    others = sorted((x for x in words if x["slug"] != w["slug"]),
+                    key=lambda x: (-len(tags & set(x["tags"])), -x["meters"].get("曖昧度", 0), x["reading"]))[:6]
     body = f"""
 <article class="word">
 <header class="whero"><div class="wrap whero-in">

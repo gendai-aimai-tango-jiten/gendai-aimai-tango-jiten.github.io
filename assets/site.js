@@ -64,6 +64,37 @@
     });
   }
 
+  // 検索とタグの絞り込み
+  var q = $('#q');
+  if (q && list) {
+    var tag = new URLSearchParams(location.search).get('tag') || '';
+    var norm = function (s) {
+      return (s || '').toLowerCase().replace(/[\u30a1-\u30f6]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); });
+    };
+    var filter = function () {
+      var term = norm(q.value.trim()), shown = 0;
+      $$('.wc', list).forEach(function (c) {
+        var ok = (!tag || c.dataset.tags.split('|').indexOf(tag) !== -1) && (!term || norm(c.dataset.search).indexOf(term) !== -1);
+        c.hidden = !ok;
+        if (ok) shown++;
+      });
+      $$('.chip').forEach(function (b) { var on = b.dataset.tag === tag; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
+      $('#empty').hidden = shown !== 0;
+      $('#result-count').textContent = (tag || term) ? shown + '語が見つかりました' : '';
+    };
+    $$('.chip').forEach(function (b) {
+      b.addEventListener('click', function () {
+        tag = b.dataset.tag;
+        var url = new URL(location.href);
+        if (tag) url.searchParams.set('tag', tag); else url.searchParams.delete('tag');
+        history.replaceState(null, '', url);
+        filter();
+      });
+    });
+    q.addEventListener('input', filter);
+    filter();
+  }
+
   // 数の数え上げ
   if (!reduce) {
     $$('[data-count]').forEach(function (el) {
