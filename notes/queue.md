@@ -39,7 +39,7 @@ HSP (hsp)／毒親 (dokuoya)／姑息 (kosoku)／煮詰まる (nitsumaru)／気�
 ## 第7陣（済）
 共感性羞恥 (kyokanseishuchi)／マインドフルネス (mindfulness)／忖度 (sontaku)／潮時 (shiodoki)／御の字 (onoji)／おもむろに (omomuroni)／民度 (mindo)／黒歴史 (kurorekishi)／中二病 (chunibyo)／リア充 (riaju)
 
-## 第8陣
+## 第8陣（済）
 ゆるブラック (yuruburakku)／ルッキズム (lookism)／多様性 (tayosei)／世間ずれ (sekenzure)／鳥肌が立つ (torihada)／天然 (tennen)／ギャップ萌え (gapmoe)／ハイスペ (haisupe)／Z世代 (zsedai)／ミーム (meme)
 
 ## 第9陣
