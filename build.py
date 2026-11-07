@@ -135,12 +135,12 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 """
 
 
-def word_card(w, rank=None):
+def word_card(w):
     amb = w["meters"].get("曖昧度", 0)
-    r = f'<span class="wc-rank">No.{rank}</span>' if rank else ""
     return (
-        f'<a class="wc" href="/words/{w["slug"]}/">'
-        f'{r}<span class="wc-circle">{emoji(w["emoji"], "wc-emo")}</span>'
+        f'<a class="wc" href="/words/{w["slug"]}/" data-added="{esc(w["added"])}" data-amb="{amb}" '
+        f'data-mis="{w["meters"].get("誤用度", 0)}" data-kana="{esc(w["reading"])}">'
+        f'<span class="wc-circle">{emoji(w["emoji"], "wc-emo")}</span>'
         f'<span class="wc-reading">{esc(w["reading"])}</span>'
         f'<span class="wc-word">{esc(w["word"])}</span>'
         f'<span class="wc-catch">{esc(w["catch"])}</span>'
@@ -151,8 +151,9 @@ def word_card(w, rank=None):
 
 
 def index_page(words):
-    ranked = sorted(words, key=lambda w: (-w["meters"].get("曖昧度", 0), -w["meters"].get("誤用度", 0)))
-    cards = "".join(word_card(w, i + 1) for i, w in enumerate(ranked))
+    # 既定は新着順（収録日が新しい順。同じ日なら曖昧度の高い順）
+    ordered = sorted(words, key=lambda w: (w["added"], w["meters"].get("曖昧度", 0)), reverse=True)
+    cards = "".join(word_card(w) for w in ordered)
     body = f"""
 <section class="hero"><div class="wrap hero-in">
 <h1 class="hero-title"><span class="mk">{SITE}</span></h1>
@@ -167,9 +168,13 @@ def index_page(words):
 </section>
 
 <section class="wrap sec-block" id="words">
-<div class="block-head"><h2 class="block-title"><span class="mk">曖昧度ランキング</span></h2>
-<p class="block-sub">意味のばらつきが大きい順に並べています。気になる言葉から読んでみてください。</p></div>
-<div class="wgrid">{cards}</div>
+<div class="block-head list-head"><h2 class="block-title"><span class="mk">収録語</span></h2>
+<div class="sorter" role="group" aria-label="並び順">
+<button type="button" class="sort-btn on" data-sort="added" aria-pressed="true">新着順</button>
+<button type="button" class="sort-btn" data-sort="amb" aria-pressed="false">曖昧度順</button>
+<button type="button" class="sort-btn" data-sort="kana" aria-pressed="false">五十音順</button>
+</div></div>
+<div class="wgrid" id="wordlist">{cards}</div>
 </section>
 
 <section class="wrap sec-block">

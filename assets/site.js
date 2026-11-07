@@ -48,6 +48,22 @@
     });
   });
 
+  // 収録語の並び替え
+  var list = $('#wordlist');
+  if (list) {
+    var SORTS = {
+      added: function (a, b) { return b.dataset.added.localeCompare(a.dataset.added) || b.dataset.amb - a.dataset.amb; },
+      amb: function (a, b) { return b.dataset.amb - a.dataset.amb || b.dataset.mis - a.dataset.mis; },
+      kana: function (a, b) { return a.dataset.kana.localeCompare(b.dataset.kana, 'ja'); }
+    };
+    $$('.sort-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        $$('.sort-btn').forEach(function (x) { x.classList.toggle('on', x === btn); x.setAttribute('aria-pressed', x === btn); });
+        $$('.wc', list).sort(SORTS[btn.dataset.sort]).forEach(function (c) { list.appendChild(c); });
+      });
+    });
+  }
+
   // 数の数え上げ
   if (!reduce) {
     $$('[data-count]').forEach(function (el) {

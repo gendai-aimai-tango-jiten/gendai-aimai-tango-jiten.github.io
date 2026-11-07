@@ -108,10 +108,9 @@ button { font: inherit; color: inherit; }
 .wc { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 24px 24px 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--shadow); color: var(--ink); text-decoration: none; transition: transform .2s, box-shadow .2s; }
 .wc:hover { transform: translateY(-4px); box-shadow: var(--shadow-up); }
 .wc:hover .wc-emo { transform: rotate(-10deg) scale(1.08); }
-.wc-rank { position: absolute; left: 24px; top: 20px; font-family: var(--font-display); font-weight: 900; font-size: 13px; color: var(--sky-on-tint); background: var(--chip-bg); border-radius: 999px; padding: 0 10px; }
 .wc-circle { position: absolute; right: 20px; top: 18px; display: grid; place-items: center; width: 76px; height: 76px; border-radius: 50%; background: var(--base-yellow); }
 .wc-emo { width: 48px; height: 48px; transition: transform .25s; }
-.wc-reading { margin-top: 36px; font-size: 12px; color: var(--text-sub); letter-spacing: .08em; }
+.wc-reading { margin-top: 6px; font-size: 12px; color: var(--text-sub); letter-spacing: .08em; }
 .wc-word { font-family: var(--font-display); font-weight: 900; font-size: 34px; line-height: 1.25; padding-right: 72px; }
 .wc-catch { margin-top: 6px; font-size: 15px; font-weight: 600; line-height: 1.65; color: var(--text-body); flex: 1; }
 .wc-amb { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 12px; font-weight: 700; color: var(--text-sub); }
@@ -329,3 +328,9 @@ button { font: inherit; color: inherit; }
 /* カードの曖昧度をいちばん下にそろえる（タグの行数が違っても高さが合う） */
 .wc-tags { order: 1; margin-top: 14px; }
 .wc-amb { order: 2; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+
+/* 収録語の並び替え */
+.list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.sorter { display: inline-flex; padding: 4px; gap: 4px; background: var(--chip-bg); border-radius: 999px; }
+.sort-btn { min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; font-size: 14px; font-weight: 700; color: var(--text-body); cursor: pointer; }
+.sort-btn.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
