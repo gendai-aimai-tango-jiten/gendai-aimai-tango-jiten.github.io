@@ -28,7 +28,7 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 ## 計測と公開の設定（2026-11-08 黒田さんが採用）
 
 - アクセス解析は GoatCounter（サイトコード aimaijiten、https://aimaijiten.goatcounter.com）。build.py の GOATCOUNTER。計測用の assets/count.js はコミュニティ図鑑と同じもの。ページの閲覧のほか、シェア（share/…）、ランダム（random）、タグ（tag/…）、検索（search/…、入力が1.5秒止まったとき）、意味派（poll/…）、ほかのサイトへのリンク（sister/…）を数える。
-- Google Search Console の確認タグは build.py の GSC_VERIFY に入れる（空なら出さない）。サイトマップは /sitemap.xml。
+- Google Search Console は 2026-11-08 に黒田さんのアカウントで確認済み（HTMLタグ、build.py の GSC_VERIFY。消すと確認が外れる）。サイトマップは /sitemap.xml。
 - robots.txt は AI の学習用クローラー（build.py の AI_BOTS）を断り、検索エンジンには開く。図鑑と同じ。
 - フッターと「この辞典について」に運営者（黒田悠介、linktr.ee）と、ほかのサイト（あしたの転機観測所、コミュニティ図鑑）を出す。build.py の OPERATOR と SISTER_SITES。
 
