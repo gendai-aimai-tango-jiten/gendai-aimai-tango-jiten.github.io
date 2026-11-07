@@ -351,3 +351,65 @@ button { font: inherit; color: inherit; }
 .result-count { margin: 0 0 12px; font-size: 13px; color: var(--text-sub); font-weight: 600; }
 .empty { text-align: center; color: var(--text-sub); padding: 40px 0; }
 .wc[hidden] { display: none; }
+
+/* スマホ用の目次（PCでは右の目次を使う） */
+.mtoc { display: none; }
+@media (max-width: 960px) {
+  .mtoc { display: flex; gap: 6px; overflow-x: auto; margin: 20px -16px 0; padding: 4px 16px 8px; scrollbar-width: none; -webkit-overflow-scrolling: touch; position: sticky; top: 56px; z-index: 5; background: var(--base); }
+  .mtoc::-webkit-scrollbar { display: none; }
+  .mtoc a { flex: none; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); font-size: 13px; font-weight: 700; color: var(--text-body); text-decoration: none; white-space: nowrap; }
+}
+
+/* スマホの調整 */
+@media (max-width: 640px) {
+  /* 押しやすさ：44px 以上 */
+  .hd-dice { width: 44px; height: 44px; }
+  .hd-nav a { min-height: 44px; display: inline-flex; align-items: center; }
+  .sort-btn, .chip { min-height: 44px; }
+  .sorter { width: 100%; }
+  .sort-btn { flex: 1; padding: 0 8px; }
+
+  /* トップ */
+  .hero { padding: 32px 0 28px; }
+  .hero-float { display: none; }
+  .hero-catch { margin-top: 12px; }
+  .hero-lead { font-size: 15px; line-height: 1.8; }
+  .hero-cta { margin-top: 20px; gap: 12px 20px; }
+  .sec-block { margin-top: 36px; }
+  .list-head { gap: 12px; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px; padding: 2px 16px 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; }
+  .wc { padding: 20px 20px 16px; }
+  .wc-circle { width: 64px; height: 64px; right: 16px; top: 16px; }
+  .wc-emo { width: 40px; height: 40px; }
+  .wc-word { font-size: 28px; padding-right: 64px; }
+
+  /* 単語ページの冒頭 */
+  .whero { padding: 20px 0 24px; }
+  .crumb { margin-bottom: 16px; }
+  .whero-reading { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .pos { margin-left: 0; }
+  .whero-word { font-size: 44px; }
+  .whero-catch { margin-top: 16px; font-size: 19px; }
+
+  /* シェアボタンは2列にそろえる */
+  .share { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .share .share-label { grid-column: 1 / -1; }
+  .share .sbtn { justify-content: center; min-height: 44px; padding: 0 10px; }
+  .share-big .sbtn { min-height: 48px; }
+
+  /* 曖昧メーターは1枚にまとめて行で並べる */
+  .mbars { gap: 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); }
+  .mbar { border: 0; border-radius: 0; padding: 14px 16px; }
+  .mbar + .mbar { border-top: 1px solid var(--line); }
+  .mbar-num { font-size: 24px; }
+  .mbar-cells { margin: 8px 0 6px; }
+
+  .wbody { margin-top: 24px; }
+  .wsec { margin-top: 44px; }
+  .tldr { box-shadow: 4px 4px 0 var(--marker); }
+  .endcta { box-shadow: 4px 4px 0 var(--marker); padding: 28px 18px; }
+}
+
+.more-btn { margin-top: 24px; min-width: 240px; }

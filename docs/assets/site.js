@@ -71,13 +71,21 @@
     var norm = function (s) {
       return (s || '').toLowerCase().replace(/[\u30a1-\u30f6]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); });
     };
-    var filter = function () {
+    // 一度に出すのは24語まで。「もっと見る」で24語ずつ足す
+    var PAGE = 24, limit = PAGE;
+    var more = $('#more');
+    var filter = function (keepLimit) {
+      if (keepLimit !== true) limit = PAGE;
       var term = norm(q.value.trim()), shown = 0;
       $$('.wc', list).forEach(function (c) {
         var ok = (!tag || c.dataset.tags.split('|').indexOf(tag) !== -1) && (!term || norm(c.dataset.search).indexOf(term) !== -1);
-        c.hidden = !ok;
         if (ok) shown++;
+        c.hidden = !ok || shown > limit;
       });
+      if (more) {
+        more.hidden = shown <= limit;
+        more.textContent = 'もっと見る（残り' + (shown - limit) + '語）';
+      }
       $$('.chip').forEach(function (b) { var on = b.dataset.tag === tag; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
       $('#empty').hidden = shown !== 0;
       $('#result-count').textContent = (tag || term) ? shown + '語が見つかりました' : '';
@@ -92,6 +100,9 @@
       });
     });
     q.addEventListener('input', filter);
+    if (more) more.addEventListener('click', function () { limit += PAGE; filter(true); });
+    // 並び替えたあとも、表示する語数を保ったまま出し直す
+    $$('.sort-btn').forEach(function (btn) { btn.addEventListener('click', function () { filter(true); }); });
     filter();
   }
 

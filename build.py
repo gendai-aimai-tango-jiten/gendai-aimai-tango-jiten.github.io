@@ -192,6 +192,7 @@ def index_page(words):
 </div>
 <p class="result-count" id="result-count" aria-live="polite"></p>
 <div class="wgrid" id="wordlist">{cards}</div>
+<div class="center"><button type="button" class="btn btn-sub more-btn" id="more" hidden>もっと見る</button></div>
 <p class="empty" id="empty" hidden>見つかりませんでした。別の言葉で探してみてください。</p>
 </section>
 
@@ -304,6 +305,7 @@ def word_page(w, words):
 <ol>{tldr}</ol>
 <dl class="facts"><div><dt>初出・発祥</dt><dd>{esc(w["origin_date"])}</dd></div><div><dt>流行のピーク</dt><dd>{esc(w["peak"])}</dd></div><div><dt>最終更新</dt><dd>{esc(w["updated"])}</dd></div></dl>
 </section>
+<nav class="mtoc" aria-label="このページの目次"><a href="#meters">曖昧メーター</a><a href="#definition">どういう意味？</a>{"".join(toc)}</nav>
 <section class="wsec" id="meters"><h2 class="wsec-title">{emoji("1f3c6", "inline-emo")}曖昧メーター</h2>{meter_bars(w["meters"], big=True)}</section>
 <section class="wsec" id="definition"><h2 class="wsec-title">{emoji("1f4d6", "inline-emo")}どういう意味？</h2>{paras(w["definition"])}</section>
 {"".join(secs)}
