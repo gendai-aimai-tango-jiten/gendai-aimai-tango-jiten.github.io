@@ -24,6 +24,7 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 | tools/check_words.py | 語のデータの点検。`--links` で出典のURLも開く（`--only slug1,slug2` でその語の出典だけ）。自動のアクセスを断るサイトは config/linkcheck.json の refusing_hosts に入れて除外する |
 | .github/workflows/check-links.yml | 毎週月曜 7:00 に出典のリンクを点検し、問題があれば Issue を作る |
 | 定期タスク「gendai-aimai-words」 | 3時間おき（毎時7分、0時・3時・6時…）に、notes/queue.md から5語を選んで書き、公開する。2026-11-08 登録、Auto モード。手順は notes/routine-words.md（変えたら定期タスクの中身も直す）。アプリが閉じていると、次に開いたときに動く |
+| 定期タスク「gendai-aimai-share」 | 毎週水曜9:00ごろに、推奨度順でまだシェアしていない語を1つ選び、notes/share-log.md に記録して、Asana のタスク「現代曖昧単語辞典をシェア」の説明欄の一番上に書く。黒田さんは翌日の木曜にシェアする。2026-11-08 登録、Auto モード |
 
 ## 計測と公開の設定（2026-11-08 黒田さんが採用）
 
