@@ -23,7 +23,7 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 | tools/fetch_emoji.py | 語の emoji に使う Noto Emoji の画像（128px と 512px）を取ってくる |
 | tools/check_words.py | 語のデータの点検。`--links` で出典のURLも開く。自動のアクセスを断るサイトは config/linkcheck.json の refusing_hosts に入れて除外する |
 | .github/workflows/check-links.yml | 毎週月曜 7:00 に出典のリンクを点検し、問題があれば Issue を作る |
-| 定期タスク「gendai-aimai-words」 | Claude のデスクトップアプリの定期タスク。毎週火曜と金曜の10:00ごろに、notes/queue.md から2語を選んで書き、公開する。手順は ~/.claude/scheduled-tasks/gendai-aimai-words/SKILL.md |
+| 定期タスク「gendai-aimai-words」（未登録） | 毎週火曜と金曜の10:00ごろに、notes/queue.md から2語を選んで書き、公開する予定の定期タスク。手順は notes/routine-words.md。2026-11-08 時点では、黒田さんの承認待ちで未登録 |
 
 ## ページ
 
