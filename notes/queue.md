@@ -21,7 +21,7 @@ slug は括弧内。済んだものは [x]。
 - [x] 地雷系 (jiraikei)
 - [x] 推し活 (oshikatsu)
 
-## 第2陣
+## 第2陣（済）
 蛇化現象 (hebikagensho)／沼る (numaru)／尊い (toutoi)／解像度 (kaizodo)／心理的安全性 (shinritekianzensei)／敷居が高い (shikiigatakai)／なし崩し (nashikuzushi)／タイパ (taipa)／匂わせ (niowase)／量産型 (ryosangata)
 
 ## 第3陣
