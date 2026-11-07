@@ -21,6 +21,12 @@ HASHTAG = "現代曖昧単語辞典"
 DESC = "流行ってるのに、意味がふわっとしている言葉の辞典。蛙化現象、メロい、ドパガキなどを、語源・意味のズレ・誤用されやすい点から一語ずつ調べました。"
 BRAND_EMOJI = "1f914"
 
+
+def asset_ver(name):
+    """中身が変わるとURLも変わるようにして、ブラウザに古いファイルを使わせない"""
+    import hashlib
+    return hashlib.md5((ASSETS / name).read_bytes()).hexdigest()[:8]
+
 METERS = [
     ("曖昧度", "人によって指す範囲がどれだけばらつくか"),
     ("誤用度", "本来の意味とずれた使われ方がどれだけ多いか"),
@@ -103,7 +109,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css?v={asset_ver("style.css")}">
 </head>
 <body class="{cls}">
 <a class="skip" href="#main">本文へ</a>
@@ -123,7 +129,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <p>流行っているのに意味がふわっとしている言葉を一語ずつ調べてまとめています。</p>
 <p class="ft-links"><a href="/">トップ</a><a href="/about/">この辞典について</a></p>
 </div></footer>
-<script src="/assets/site.js" defer></script>
+<script src="/assets/site.js?v={asset_ver("site.js")}" defer></script>
 </body>
 </html>
 """
