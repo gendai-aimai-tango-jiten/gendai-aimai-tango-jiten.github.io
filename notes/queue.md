@@ -36,7 +36,7 @@ HSP (hsp)／毒親 (dokuoya)／姑息 (kosoku)／煮詰まる (nitsumaru)／気�
 ## 第6陣（済）
 静かな退職 (shizukanataishoku)／アンコンシャス・バイアス (unconsciousbias)／レジリエンス (resilience)／憮然 (buzen)／須らく (subekaraku)／琴線に触れる (kinsen)／意識高い系 (ishikitakaikei)／詰んだ (tsunda)／バズる (bazuru)／炎上 (enjo)
 
-## 第7陣
+## 第7陣（済）
 共感性羞恥 (kyokanseishuchi)／マインドフルネス (mindfulness)／忖度 (sontaku)／潮時 (shiodoki)／御の字 (onoji)／おもむろに (omomuroni)／民度 (mindo)／黒歴史 (kurorekishi)／中二病 (chunibyo)／リア充 (riaju)
 
 ## 第8陣
