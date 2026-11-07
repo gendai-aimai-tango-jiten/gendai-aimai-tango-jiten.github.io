@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """現代曖昧単語辞典 ビルドスクリプト
 
-data/words/*.json を読み、docs/ に静的HTMLを書き出す。
+data/words/*.json を読み、docs/ に静的サイトを書き出す。
 使い方: python3 build.py
+共有画像（docs/og/*.png）は tools/make_og.py で別に作る（Pillow が必要）。
 """
 import html
 import json
@@ -14,327 +15,437 @@ DATA = ROOT / "data" / "words"
 OUT = ROOT / "docs"
 ASSETS = ROOT / "assets"
 
-SITE_TITLE = "現代曖昧単語辞典"
-SITE_DESC = "流行っているのに、意味がはっきりしない言葉を、一語ずつ多様な観点から調べてまとめる辞典。"
+SITE = "現代曖昧単語辞典"
+BASE_URL = "https://gendai-aimai-tango-jiten.github.io"
+HASHTAG = "現代曖昧単語辞典"
+DESC = "流行ってるのに、意味がふわっとしている言葉の辞典。蛙化現象、メロい、ドパガキなどを、語源・意味のズレ・誤用されやすい点から一語ずつ調べました。"
+BRAND_EMOJI = "1f914"
 
-METER_ORDER = ["曖昧度", "誤用度", "トゲ度", "定着度"]
-METER_HELP = {
-    "曖昧度": "人によって指す範囲がどれだけばらつくか",
-    "誤用度": "本来の意味や出典とずれた使われ方がどれだけ多いか",
-    "トゲ度": "人に向けて使ったときに攻撃的・失礼に響くおそれ",
-    "定着度": "一部の界隈を越えて広く通じるか",
+METERS = [
+    ("曖昧度", "人によって指す範囲がどれだけばらつくか"),
+    ("誤用度", "本来の意味とずれた使われ方がどれだけ多いか"),
+    ("トゲ度", "人に向けて使ったとき、きつく響くおそれ"),
+    ("通じる度", "上の世代や別の界隈にも通じるか"),
+]
+USAGE = {
+    "原義": ("u-origin", "もともとの意味"),
+    "拡張": ("u-extend", "広がった使い方"),
+    "誤用寄り": ("u-misuse", "出典から離れた使い方"),
 }
-USAGE_TYPES = {"原義": "u-origin", "拡張": "u-extend", "誤用寄り": "u-misuse"}
+VERDICT = {"ok": ("アリ", "v-ok"), "warn": ("ビミョー", "v-warn"), "ng": ("ナシ", "v-ng")}
 
 
 def esc(s):
     return html.escape(str(s), quote=True)
 
 
+def inline(s):
+    t = esc(s.strip()).replace("\n", "<br>")
+    parts = t.split("**")
+    return "".join(f"<strong>{p}</strong>" if i % 2 else p for i, p in enumerate(parts))
+
+
 def paras(text):
-    """空行区切りの段落を <p> にする。**強調** だけ対応。"""
-    out = []
-    for block in str(text).strip().split("\n\n"):
-        b = esc(block.strip()).replace("\n", "<br>")
-        parts = b.split("**")
-        b = "".join(f"<strong>{p}</strong>" if i % 2 else p for i, p in enumerate(parts))
-        out.append(f"<p>{b}</p>")
-    return "\n".join(out)
+    return "\n".join(f"<p>{inline(b)}</p>" for b in str(text).strip().split("\n\n"))
 
 
-def meters_html(meters, compact=False):
+def emoji(cp, cls="emo", size=None):
+    s = f' width="{size}" height="{size}"' if size else ""
+    return f'<img class="{cls}" src="/assets/emoji/{cp}.png" alt=""{s} loading="lazy" decoding="async">'
+
+
+def meter_bars(meters, big=False):
     rows = []
-    for key in METER_ORDER:
-        if key not in meters:
-            continue
-        v = int(meters[key])
-        dots = "".join(f'<i class="{"on" if i < v else ""}"></i>' for i in range(5))
-        label = esc(key)
-        if compact:
-            rows.append(f'<div class="meter sm" title="{esc(METER_HELP[key])}"><span>{label}</span><b aria-label="{v}/5">{dots}</b></div>')
-        else:
+    for key, help_ in METERS:
+        v = int(meters.get(key, 0))
+        cells = "".join(f'<i class="{"on" if i < v else ""}"></i>' for i in range(5))
+        if big:
             rows.append(
-                f'<div class="meter"><span>{label}</span><b aria-label="5段階中{v}">{dots}</b>'
-                f'<small>{esc(METER_HELP[key])}</small></div>'
+                f'<div class="mbar"><div class="mbar-top"><b>{key}</b><span class="mbar-num">{v}<small>/5</small></span></div>'
+                f'<div class="mbar-cells" role="img" aria-label="{key} 5段階中{v}">{cells}</div><p>{esc(help_)}</p></div>'
             )
-    return f'<div class="meters{" compact" if compact else ""}">{"".join(rows)}</div>'
+        else:
+            rows.append(f'<div class="mini-m"><span>{key}</span><b role="img" aria-label="5段階中{v}">{cells}</b></div>')
+    return f'<div class="{"mbars" if big else "mini-ms"}">{"".join(rows)}</div>'
 
 
-def head(title, desc, depth):
-    pre = "../" * depth
+def share_bar(text, url, label="シェアする", cls=""):
+    return (
+        f'<div class="share {cls}" data-text="{esc(text)}" data-url="{esc(url)}">'
+        f'<span class="share-label">{esc(label)}</span>'
+        '<button type="button" class="sbtn sx" data-share="x" aria-label="Xでシェア"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>ポスト</button>'
+        '<button type="button" class="sbtn sl" data-share="line" aria-label="LINEで送る">LINE</button>'
+        '<button type="button" class="sbtn sc" data-share="copy" aria-label="リンクをコピー">リンクをコピー</button>'
+        "</div>"
+    )
+
+
+def page(title, desc, body, path="/", og="/og/site.png", cls=""):
+    url = BASE_URL + path
+    full = title if title == SITE else f"{title}｜{SITE}"
     return f"""<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{esc(title)}</title>
+<title>{esc(full)}</title>
 <meta name="description" content="{esc(desc)}">
-<meta property="og:title" content="{esc(title)}">
+<link rel="canonical" href="{esc(url)}">
+<meta property="og:site_name" content="{SITE}">
+<meta property="og:title" content="{esc(full)}">
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:type" content="website">
+<meta property="og:url" content="{esc(url)}">
+<meta property="og:image" content="{BASE_URL}{og}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f7f9fb">
+<link rel="icon" href="/assets/emoji/{BRAND_EMOJI}.png">
+<link rel="apple-touch-icon" href="/assets/emoji/{BRAND_EMOJI}.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{pre}assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
 </head>
-<body>
-<header class="site-header"><div class="wrap">
-<a class="brand" href="{pre}index.html"><span class="brand-mark">曖</span>{SITE_TITLE}</a>
-<nav><a href="{pre}index.html#list">収録語</a><a href="{pre}about.html">この辞典について</a></nav>
+<body class="{cls}">
+<a class="skip" href="#main">本文へ</a>
+<header class="hd"><div class="wrap hd-in">
+<a class="logo" href="/">{emoji(BRAND_EMOJI, "logo-emo", 28)}<span>{SITE}</span></a>
+<nav class="hd-nav" aria-label="メニュー">
+<a href="/#words">収録語</a>
+<a href="/quiz/" class="hd-quiz">クイズ</a>
+<a href="/about/">この辞典について</a>
+<button type="button" class="hd-dice" data-random aria-label="ランダムに1語ひらく">{emoji("1f3b2", "dice-emo", 22)}</button>
+</nav>
 </div></header>
-"""
-
-
-def foot(depth):
-    pre = "../" * depth
-    return f"""<footer class="site-footer"><div class="wrap">
-<p>{SITE_TITLE} — 言葉の意味は使う人の数だけ揺れます。ここに書いたのは調べた時点での整理です。</p>
-<p><a href="{pre}index.html">トップ</a> ・ <a href="{pre}about.html">この辞典について</a></p>
+<main id="main">
+{body}
+</main>
+<footer class="ft"><div class="wrap">
+<p class="ft-logo">{emoji(BRAND_EMOJI, "logo-emo", 24)}{SITE}</p>
+<p>流行っているのに、意味がふわっとしている言葉を、一語ずつ調べてまとめています。書いてあるのは調べた時点の整理です。</p>
+<p class="ft-links"><a href="/">トップ</a><a href="/quiz/">アリ？ナシ？クイズ</a><a href="/about/">この辞典について</a><a href="https://github.com/gendai-aimai-tango-jiten/gendai-aimai-tango-jiten.github.io" rel="noopener">GitHub</a></p>
+<p class="ft-small">絵文字は Google の Noto Emoji（Apache License 2.0）を使っています。</p>
 </div></footer>
-<script src="{pre}assets/app.js"></script>
+<script src="/assets/site.js" defer></script>
 </body>
 </html>
 """
 
 
-def section(sid, num, title, body):
-    return f"""<section class="sec" id="{sid}">
-<h2><span class="sec-num">{num}</span>{esc(title)}</h2>
-{body}
-</section>"""
-
-
-def word_page(w, all_words):
-    slug_map = {x["word"]: x["slug"] for x in all_words}
-    secs = []
-    toc = []
-
-    def add(sid, title, body):
-        n = len(secs) + 1
-        secs.append(section(sid, f"{n:02d}", title, body))
-        toc.append(f'<li><a href="#{sid}">{esc(title)}</a></li>')
-
-    add("definition", "ひとことで言うと", paras(w["definition"]))
-
-    if w.get("usages"):
-        items = []
-        for u in w["usages"]:
-            cls = USAGE_TYPES.get(u["type"], "u-extend")
-            items.append(
-                f'<li class="{cls}"><span class="u-tag">{esc(u["type"])}</span>'
-                f'<div><h3>{esc(u["label"])}</h3>{paras(u["desc"])}</div></li>'
-            )
-        legend = '<p class="legend">いま使われている意味の幅。<span class="u-tag u-origin">原義</span>もともとの意味 <span class="u-tag u-extend">拡張</span>広がった使い方 <span class="u-tag u-misuse">誤用寄り</span>出典からは離れた使い方</p>'
-        add("usages", "意味の地図", legend + f'<ol class="usage-map">{"".join(items)}</ol>')
-
-    add("etymology", "語源・成り立ち", paras(w["etymology"]))
-
-    if w.get("timeline"):
-        rows = "".join(
-            f'<li><time>{esc(t["date"])}</time><div>{paras(t["event"])}</div></li>' for t in w["timeline"]
-        )
-        add("timeline", "広まった経緯", f'<ol class="timeline">{rows}</ol>')
-
-    if w.get("misuses"):
-        items = "".join(
-            f'<div class="card warn"><h3>{esc(m["title"])}</h3>{paras(m["body"])}</div>' for m in w["misuses"]
-        )
-        add("misuses", "ズレやすいポイント・誤解", f'<div class="cards">{items}</div>')
-
-    if w.get("examples"):
-        items = []
-        for e in w["examples"]:
-            mark = {"ok": ("○", "ex-ok", "自然"), "ng": ("×", "ex-ng", "ズレている"), "warn": ("△", "ex-warn", "注意")}[e["verdict"]]
-            items.append(
-                f'<li class="{mark[1]}"><span class="ex-mark" aria-label="{mark[2]}">{mark[0]}</span>'
-                f'<div><q>{esc(e["text"])}</q><small>{esc(e["note"])}</small></div></li>'
-            )
-        add("examples", "使用例で見る", f'<ul class="examples">{"".join(items)}</ul>')
-
-    if w.get("perspectives"):
-        items = "".join(
-            f'<div class="persp"><h3>{esc(p["label"])}</h3>{paras(p["body"])}</div>' for p in w["perspectives"]
-        )
-        add("perspectives", "多様な観点から", f'<div class="persps">{items}</div>')
-
-    if w.get("who_where"):
-        add("who", "誰が・どこで使うか", paras(w["who_where"]))
-
-    if w.get("paraphrase"):
-        rows = "".join(
-            f'<tr><th>{esc(p["context"])}</th><td>{esc(p["text"])}</td></tr>' for p in w["paraphrase"]
-        )
-        add("paraphrase", "言い換えるなら", f'<table class="para"><tbody>{rows}</tbody></table>')
-
-    if w.get("related"):
-        items = []
-        for r in w["related"]:
-            name = esc(r["word"])
-            if r["word"] in slug_map:
-                name = f'<a href="{slug_map[r["word"]]}.html">{name}</a>'
-            items.append(f'<li><b>{name}</b><span>{esc(r["note"])}</span></li>')
-        add("related", "関連語・対になる語", f'<ul class="related">{"".join(items)}</ul>')
-
-    if w.get("sources"):
-        items = "".join(
-            f'<li><a href="{esc(s["url"])}" rel="noopener" target="_blank">{esc(s["title"])}</a>'
-            + (f' <small>{esc(s["note"])}</small>' if s.get("note") else "")
-            + "</li>"
-            for s in w["sources"]
-        )
-        add("sources", "出典・参考", f'<ol class="sources">{items}</ol>')
-
-    tags = "".join(f'<a class="tag" href="../index.html?tag={esc(t)}#list">{esc(t)}</a>' for t in w["tags"])
-    title = f'{w["word"]}とは｜{SITE_TITLE}'
-    others = [x for x in all_words if x["slug"] != w["slug"]]
-    nav = "".join(
-        f'<a class="mini" href="{x["slug"]}.html"><b>{esc(x["word"])}</b><span>{esc(x["oneliner"])}</span></a>'
-        for x in others[:6]
-    )
-
+def word_card(w, rank=None):
+    amb = w["meters"].get("曖昧度", 0)
+    r = f'<span class="wc-rank">No.{rank}</span>' if rank else ""
     return (
-        head(title, w["oneliner"], 1)
-        + f"""<main class="wrap word-layout">
-<article class="entry">
-<div class="entry-head">
-<p class="crumb"><a href="../index.html">{SITE_TITLE}</a> › 収録語</p>
-<h1 class="headword">{esc(w["word"])}</h1>
-<p class="reading">【{esc(w["reading"])}】<span class="pos">{esc(w["pos"])}</span></p>
-<p class="oneliner">{esc(w["oneliner"])}</p>
-<div class="tags">{tags}</div>
-<dl class="facts">
-<div><dt>初出・発祥</dt><dd>{esc(w["origin_date"])}</dd></div>
-<div><dt>流行のピーク</dt><dd>{esc(w["peak"])}</dd></div>
-<div><dt>最終更新</dt><dd>{esc(w["updated"])}</dd></div>
-</dl>
-{meters_html(w["meters"])}
-</div>
-{"".join(secs)}
-</article>
-<aside class="side">
-<div class="toc"><p class="side-title">目次</p><ol>{"".join(toc)}</ol></div>
-</aside>
-</main>
-<section class="wrap more"><h2 class="more-title">ほかの曖昧な言葉</h2><div class="minis">{nav}</div></section>
-"""
-        + foot(1)
+        f'<a class="wc" href="/words/{w["slug"]}/">'
+        f'{r}<span class="wc-circle">{emoji(w["emoji"], "wc-emo")}</span>'
+        f'<span class="wc-reading">{esc(w["reading"])}</span>'
+        f'<span class="wc-word">{esc(w["word"])}</span>'
+        f'<span class="wc-catch">{esc(w["catch"])}</span>'
+        f'<span class="wc-amb"><span>曖昧度</span><b style="--v:{amb}"></b><em>{amb}</em></span>'
+        f'<span class="wc-tags">{"".join(f"<i>{esc(t)}</i>" for t in w["tags"][:3])}</span>'
+        "</a>"
     )
 
 
-def index_page(words, planned):
-    cards = []
-    all_tags = []
+def quiz_items(words):
+    items = []
     for w in words:
-        for t in w["tags"]:
-            if t not in all_tags:
-                all_tags.append(t)
-        cards.append(
-            f'<a class="wcard" href="words/{w["slug"]}.html" data-tags="{esc("|".join(w["tags"]))}" '
-            f'data-search="{esc(w["word"] + w["reading"] + w["oneliner"] + "".join(w["tags"]))}" '
-            f'data-amb="{w["meters"].get("曖昧度", 0)}" data-mis="{w["meters"].get("誤用度", 0)}" data-date="{esc(w["updated"])}" data-kana="{esc(w["reading"])}">'
-            f'<span class="wcard-reading">{esc(w["reading"])}</span>'
-            f'<span class="wcard-word">{esc(w["word"])}</span>'
-            f'<span class="wcard-one">{esc(w["oneliner"])}</span>'
-            f'{meters_html(w["meters"], compact=True)}'
-            f'<span class="wcard-tags">{"".join(f"<i>{esc(t)}</i>" for t in w["tags"])}</span>'
-            f"</a>"
-        )
-    tag_btns = '<button class="chip active" data-tag="">すべて</button>' + "".join(
-        f'<button class="chip" data-tag="{esc(t)}">{esc(t)}</button>' for t in all_tags
-    )
-    planned_html = "".join(f"<li>{esc(p)}</li>" for p in planned)
-    meter_help = "".join(f"<li><b>{esc(k)}</b>{esc(v)}</li>" for k, v in METER_HELP.items())
+        for e in w.get("examples", []):
+            items.append({"slug": w["slug"], "word": w["word"], "emoji": w["emoji"],
+                          "text": e["text"], "answer": e["verdict"], "note": e["note"]})
+    return items
 
-    return (
-        head(SITE_TITLE, SITE_DESC, 0)
-        + f"""<main>
-<section class="hero"><div class="wrap">
-<p class="hero-kicker">GENDAI AIMAI TANGO JITEN</p>
-<h1 class="hero-title">現代<br class="sp">曖昧<br class="sp">単語辞典</h1>
-<p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉があります。この辞典では、そうした言葉を一語ずつ取り上げ、語源、広まった経緯、意味の幅、誤用されやすい点を調べてまとめています。</p>
-<div class="hero-stats"><div><b>{len(words)}</b><span>収録語</span></div><div><b>{len(planned)}</b><span>収録予定</span></div></div>
+
+def index_page(words, planned, quiz):
+    ranked = sorted(words, key=lambda w: (-w["meters"].get("曖昧度", 0), -w["meters"].get("誤用度", 0)))
+    cards = "".join(word_card(w, i + 1) for i, w in enumerate(ranked))
+    n_usage = sum(len(w.get("usages", [])) for w in words)
+    n_src = sum(len(w.get("sources", [])) for w in words)
+    sample = quiz[1] if len(quiz) > 1 else quiz[0]
+    req_text = "「現代曖昧単語辞典」に、この言葉も載せてほしい："
+    planned_html = "".join(f"<li>{esc(p)}</li>" for p in planned)
+    body = f"""
+<section class="hero"><div class="wrap hero-in">
+<p class="hero-kicker">流行ってるのに、意味がふわっとしてる言葉の辞典</p>
+<h1 class="hero-title"><span class="mk">{SITE}</span></h1>
+<p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
+<p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉を、一語ずつ調べました。語源、広まった経緯、意味のズレ、誤用されやすい点までまとめています。</p>
+<div class="hero-cta">
+<a class="btn btn-main" href="/quiz/">{emoji("1f9ea", "btn-emo")}アリ？ナシ？クイズに挑戦</a>
+<button type="button" class="btn btn-sub" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1語ひく</button>
+</div>
+<div class="stats">
+<div><b data-count="{len(words)}">{len(words)}</b><span>収録語</span></div>
+<div><b data-count="{n_usage}">{n_usage}</b><span>見つけた意味のズレ</span></div>
+<div><b data-count="{n_src}">{n_src}</b><span>参考にした出典</span></div>
+</div>
+</div>
+<div class="hero-float" aria-hidden="true">{"".join(emoji(w["emoji"], "fl fl" + str(i)) for i, w in enumerate(words))}</div>
+</section>
+
+<section class="wrap sec-block" id="words">
+<div class="block-head"><h2 class="block-title"><span class="mk">曖昧度ランキング</span></h2>
+<p class="block-sub">意味のばらつきが大きい順に並べています。気になる言葉から読んでみてください。</p></div>
+<div class="wgrid">{cards}</div>
+</section>
+
+<section class="quiz-band"><div class="wrap qb-in">
+<div class="qb-text">
+<p class="qb-kicker">{emoji("1f9ea", "inline-emo")}アリ？ナシ？クイズ</p>
+<h2>あなたの<span class="mk">曖昧語力</span>は何点？</h2>
+<p>実際によくある使い方を見て、「アリ」「ビミョー」「ナシ」を判定するクイズです。全{min(10, len(quiz))}問。結果はシェアできます。</p>
+<a class="btn btn-main" href="/quiz/">クイズをはじめる</a>
+</div>
+<div class="qb-sample" aria-hidden="true">
+<p class="qs-word">{emoji(sample["emoji"], "inline-emo")}{esc(sample["word"])}</p>
+<p class="qs-text">「{esc(sample["text"])}」</p>
+<div class="qs-btns"><span class="v-ok">アリ</span><span class="v-warn">ビミョー</span><span class="v-ng">ナシ</span></div>
+</div>
 </div></section>
 
-<section class="wrap" id="list">
-<div class="list-head">
-<h2 class="list-title">収録語</h2>
-<div class="controls">
-<label class="search"><span class="sr">言葉を探す</span><input id="q" type="search" placeholder="言葉・読み・タグで探す" autocomplete="off"></label>
-<label class="sort"><span class="sr">並び順</span><select id="sort">
-<option value="amb">曖昧度が高い順</option>
-<option value="mis">誤用度が高い順</option>
-<option value="date">更新が新しい順</option>
-<option value="kana">五十音順</option>
-</select></label>
-</div>
-</div>
-<div class="chips" role="group" aria-label="タグで絞り込む">{tag_btns}</div>
-<div class="grid" id="grid">{"".join(cards)}</div>
-<p class="empty" id="empty" hidden>条件に合う言葉はまだ収録されていません。</p>
-</section>
-
-<section class="wrap twocol">
+<section class="wrap sec-block">
+<div class="twocol">
 <div class="panel">
-<h2>メーターの見方</h2>
-<p>各項目を5段階で示しています。数値は調べた資料をもとにした編集部の目安です。</p>
-<ul class="meter-help">{meter_help}</ul>
-</div>
-<div class="panel">
-<h2>収録予定の言葉</h2>
+<h2>{emoji("1f4dd", "inline-emo")}次に調べる言葉</h2>
 <ul class="planned">{planned_html}</ul>
+<p class="panel-note">「この言葉も調べてほしい」というリクエストを受け付けています。</p>
+{share_bar(req_text, BASE_URL + "/", label="リクエストをポストする", cls="share-req")}
+</div>
+<div class="panel">
+<h2>{emoji("1f4d6", "inline-emo")}この辞典の読み方</h2>
+<p>各ページでは、言葉の意味を「もともとの意味」「広がった使い方」「出典から離れた使い方」に分けて整理しています。正解を一つに決めるのではなく、どこでズレが生まれたかを見えるようにするのがねらいです。</p>
+<ul class="mhelp">{"".join(f"<li><b>{k}</b>{esc(v)}</li>" for k, v in METERS)}</ul>
+<p><a href="/about/">この辞典について詳しく</a></p>
+</div>
 </div>
 </section>
-</main>
 """
-        + foot(0)
+    return page(SITE, DESC, body, "/", "/og/site.png", "home")
+
+
+def word_page(w, words):
+    slug_map = {x["word"]: x["slug"] for x in words}
+    url = f"{BASE_URL}/words/{w['slug']}/"
+    toc = []
+    secs = []
+
+    def add(sid, icon, title, inner, extra=""):
+        toc.append(f'<a href="#{sid}">{esc(title)}</a>')
+        secs.append(f'<section class="wsec {extra}" id="{sid}"><h2 class="wsec-title">{emoji(icon, "inline-emo")}{esc(title)}</h2>{inner}</section>')
+
+    # あなたはどの意味派？
+    opts = "".join(
+        f'<button type="button" class="poll-opt" data-type="{esc(u["type"])}" data-label="{esc(u["label"])}">'
+        f'<span class="poll-tag {USAGE[u["type"]][0]}">{esc(u["type"])}</span>{esc(u["label"])}</button>'
+        for u in w["usages"]
     )
+    poll = f"""<div class="poll" data-word="{esc(w["word"])}" data-url="{esc(url)}">
+<p class="poll-q">あなたは「{esc(w["word"])}」を、どの意味で使っていましたか？</p>
+<div class="poll-opts">{opts}<button type="button" class="poll-opt" data-type="none" data-label="この言葉を知らなかった"><span class="poll-tag u-none">？</span>この言葉を知らなかった</button></div>
+<div class="poll-result" hidden></div>
+</div>"""
+    add("poll", "1f914", "あなたはどの意味派？", poll, "wsec-poll")
+
+    # 意味の地図
+    items = "".join(
+        f'<li class="umap-item {USAGE[u["type"]][0]}"><span class="umap-tag">{esc(u["type"])}<small>{USAGE[u["type"]][1]}</small></span>'
+        f'<h3>{esc(u["label"])}</h3>{paras(u["desc"])}</li>'
+        for u in w["usages"]
+    )
+    add("map", "1f50d", "意味の地図", f'<p class="wsec-lead">いま、この言葉はこれだけの意味で使われています。上ほど本来の意味に近く、下ほど出典から離れます。</p><ol class="umap">{items}</ol>')
+
+    # アリ？ナシ？
+    ex = "".join(
+        f'<li class="ex" data-answer="{e["verdict"]}"><p class="ex-text">「{esc(e["text"])}」</p>'
+        f'<div class="ex-btns">' + "".join(
+            f'<button type="button" class="ex-btn {VERDICT[k][1]}" data-v="{k}">{VERDICT[k][0]}</button>' for k in ("ok", "warn", "ng")
+        ) + f'</div><div class="ex-ans" hidden><b class="{VERDICT[e["verdict"]][1]}">{VERDICT[e["verdict"]][0]}</b><p>{esc(e["note"])}</p></div></li>'
+        for e in w["examples"]
+    )
+    add("examples", "1f9ea", "この使い方、アリ？ナシ？", f'<p class="wsec-lead">押すと答えと解説が出ます。</p><ol class="exs">{ex}</ol>')
+
+    add("etymology", "1f4d6", "語源・成り立ち", paras(w["etymology"]))
+
+    tl = "".join(f'<li><time>{esc(t["date"])}</time><div>{paras(t["event"])}</div></li>' for t in w["timeline"])
+    add("timeline", "1f4e3", "広まった経緯", f'<ol class="tl">{tl}</ol>')
+
+    mis = "".join(f'<div class="mis"><h3>{esc(m["title"])}</h3>{paras(m["body"])}</div>' for m in w["misuses"])
+    add("misuses", "1f440", "ズレやすいポイント", f'<div class="miss">{mis}</div>')
+
+    tabs = "".join(
+        f'<button type="button" role="tab" class="ptab{" on" if i == 0 else ""}" aria-selected="{"true" if i == 0 else "false"}" data-i="{i}">{esc(p["label"].split(" ──")[0])}</button>'
+        for i, p in enumerate(w["perspectives"])
+    )
+    panels = "".join(
+        f'<div class="ppanel" role="tabpanel" data-i="{i}"{"" if i == 0 else " hidden"}><h3>{esc(p["label"])}</h3>{paras(p["body"])}</div>'
+        for i, p in enumerate(w["perspectives"])
+    )
+    add("perspectives", "1f4ad", "いろんな観点から見る", f'<div class="ptabs" role="tablist">{tabs}</div><div class="ppanels">{panels}</div>')
+
+    add("who", "1f4ac", "誰が・どこで使う？", paras(w["who_where"]))
+
+    para = "".join(f'<li><span>{esc(p["context"])}</span><b>{esc(p["text"])}</b></li>' for p in w["paraphrase"])
+    add("paraphrase", "270f", "言い換えるなら", f'<ul class="paras">{para}</ul>')
+
+    rel = []
+    for r in w["related"]:
+        name = esc(r["word"])
+        if r["word"] in slug_map:
+            name = f'<a href="/words/{slug_map[r["word"]]}/">{name}</a>'
+        rel.append(f'<li><b>{name}</b><span>{esc(r["note"])}</span></li>')
+    add("related", "2728", "関連語", f'<ul class="rels">{"".join(rel)}</ul>')
+
+    src = "".join(
+        f'<li><a href="{esc(s["url"])}" rel="noopener" target="_blank">{esc(s["title"])}</a>'
+        + (f'<small>{esc(s["note"])}</small>' if s.get("note") else "") + "</li>"
+        for s in w["sources"]
+    )
+    add("sources", "1f4dd", "出典・参考", f'<ol class="srcs">{src}</ol>')
+
+    tldr = "".join(f"<li>{esc(t)}</li>" for t in w["tldr"])
+    share_text = f"「{w['word']}」の意味、ちゃんと分かってる？ {w['catch']}"
+    others = [x for x in words if x["slug"] != w["slug"]]
+    body = f"""
+<article class="word">
+<header class="whero"><div class="wrap whero-in">
+<p class="crumb"><a href="/">{SITE}</a><span>›</span><a href="/#words">収録語</a></p>
+<div class="whero-main">
+<span class="whero-circle">{emoji(w["emoji"], "whero-emo")}</span>
+<div>
+<p class="whero-reading">{esc(w["reading"])}<span class="pos">{esc(w["pos"])}</span></p>
+<h1 class="whero-word">{esc(w["word"])}</h1>
+</div>
+</div>
+<p class="whero-catch"><span class="mk">{esc(w["catch"])}</span></p>
+<div class="whero-tags">{"".join(f"<span>{esc(t)}</span>" for t in w["tags"])}</div>
+{share_bar(share_text, url, label="この言葉をシェア")}
+</div></header>
+
+<div class="wrap wbody">
+<div class="wmain">
+<section class="tldr">
+<p class="tldr-title">{emoji("1f525", "inline-emo")}30秒でわかる「{esc(w["word"])}」</p>
+<ol>{tldr}</ol>
+<dl class="facts"><div><dt>初出・発祥</dt><dd>{esc(w["origin_date"])}</dd></div><div><dt>流行のピーク</dt><dd>{esc(w["peak"])}</dd></div><div><dt>最終更新</dt><dd>{esc(w["updated"])}</dd></div></dl>
+</section>
+<section class="wsec" id="meters"><h2 class="wsec-title">{emoji("1f3c6", "inline-emo")}曖昧メーター</h2>{meter_bars(w["meters"], big=True)}</section>
+<section class="wsec" id="definition"><h2 class="wsec-title">{emoji("1f4d6", "inline-emo")}どういう意味？</h2>{paras(w["definition"])}</section>
+{"".join(secs)}
+<section class="endcta">
+<p class="endcta-title">まわりの人は、どの意味で使ってる？</p>
+<p>同じ言葉でも、人によって思い浮かべる意味が違います。友だちや家族に聞いてみてください。</p>
+{share_bar(share_text, url, label="このページを送る", cls="share-big")}
+</section>
+</div>
+<aside class="wside"><nav class="wtoc" aria-label="このページの目次"><p>目次</p><a href="#meters">曖昧メーター</a><a href="#definition">どういう意味？</a>{"".join(toc)}</nav></aside>
+</div>
+</article>
+
+<section class="wrap sec-block">
+<div class="block-head"><h2 class="block-title"><span class="mk">ほかの曖昧な言葉</span></h2></div>
+<div class="wgrid">{"".join(word_card(x) for x in others)}</div>
+<div class="center"><a class="btn btn-main" href="/quiz/">{emoji("1f9ea", "btn-emo")}アリ？ナシ？クイズに挑戦</a></div>
+</section>
+"""
+    return page(f"{w['word']}とは？意味・語源・使い方のズレ", f"{w['catch']} {w['oneliner']}", body,
+                f"/words/{w['slug']}/", f"/og/{w['slug']}.png", "wordpage")
+
+
+def quiz_page(quiz):
+    data = json.dumps(quiz, ensure_ascii=False).replace("</", "<\\/")
+    body = f"""
+<section class="quiz wrap" data-base="{BASE_URL}">
+<div class="qz-start" id="qz-start">
+<p class="qz-kicker">{emoji("1f9ea", "inline-emo")}アリ？ナシ？クイズ</p>
+<h1 class="qz-title">あなたの<span class="mk">曖昧語力</span>は何点？</h1>
+<p class="qz-lead">流行語のよくある使い方を見て、「アリ」「ビミョー」「ナシ」を判定してください。全{min(10, len(quiz))}問、1分ほどで終わります。</p>
+<ul class="qz-rule"><li><b class="v-ok">アリ</b>本来の意味でも、いまの使い方でも自然</li><li><b class="v-warn">ビミョー</b>使う人はいるが、ずれていたり角が立ったりする</li><li><b class="v-ng">ナシ</b>意味が合っていない</li></ul>
+<button type="button" class="btn btn-main btn-xl" id="qz-go">はじめる</button>
+</div>
+<div class="qz-play" id="qz-play" hidden>
+<div class="qz-prog"><span id="qz-n">1</span> / <span id="qz-total">10</span><div class="qz-bar"><i id="qz-bar"></i></div></div>
+<div class="qz-card" id="qz-card"></div>
+</div>
+<div class="qz-result" id="qz-result" hidden></div>
+</section>
+<script id="quiz-data" type="application/json">{data}</script>
+"""
+    return page("アリ？ナシ？曖昧語クイズ", "流行語のよくある使い方を「アリ」「ビミョー」「ナシ」で判定するクイズ。あなたの曖昧語力は何点？", body,
+                "/quiz/", "/og/quiz.png", "quizpage")
 
 
 def about_page():
-    return (
-        head(f"この辞典について｜{SITE_TITLE}", SITE_DESC, 0)
-        + """<main class="wrap prose">
-<h1 class="page-title">この辞典について</h1>
+    body = """
+<section class="wrap prose">
+<h1 class="page-title"><span class="mk">この辞典について</span></h1>
 <h2>なぜ作ったか</h2>
 <p>SNSで流行する言葉は、広まる途中で意味が少しずつ変わります。もともとの意味を知らずに使う人、別の意味で受け取る人、皮肉として使う人が混ざり、同じ言葉で話していても話がかみ合わないことがあります。</p>
-<p>この辞典は、そうした「流行っているが曖昧な言葉」を一語一ページで取り上げます。正しい意味を一つに決めるのではなく、意味の幅と、ずれが生まれた経緯を見えるようにすることを目指しています。</p>
-<h2>各ページの構成</h2>
+<p>この辞典では、そうした「流行っているのに意味がふわっとしている言葉」を一語一ページで取り上げます。正しい意味を一つに決めるのではなく、意味の幅と、ずれが生まれた経緯を見えるようにすることを目指しています。</p>
+<h2>各ページの中身</h2>
 <ul>
-<li>ひとことで言うと：いまの主な意味</li>
-<li>意味の地図：原義、広がった使い方、出典から離れた使い方の整理</li>
-<li>語源・成り立ち／広まった経緯</li>
-<li>ズレやすいポイント・誤解</li>
-<li>使用例：自然な例とズレた例</li>
-<li>多様な観点から：心理学、脳科学、言語学、社会、マーケティングなど</li>
-<li>言い換え・関連語・出典</li>
+<li>30秒でわかる要点と、曖昧メーター</li>
+<li>あなたはどの意味派？：自分の使い方を選ぶと、その意味の位置づけが分かります</li>
+<li>意味の地図：もともとの意味、広がった使い方、出典から離れた使い方</li>
+<li>この使い方、アリ？ナシ？：よくある使用例の判定</li>
+<li>語源、広まった経緯、ズレやすいポイント</li>
+<li>いろんな観点から見る：心理学、脳科学、言語学、世代論、海外との比較など</li>
+<li>言い換え、関連語、出典</li>
 </ul>
+<h2>曖昧メーター</h2>
+<p>曖昧度・誤用度・トゲ度・通じる度を5段階で示しています。調べた資料をもとに編集部が付けた目安で、統計的な指標ではありません。</p>
 <h2>情報の扱い</h2>
-<p>流行語の初出や語源は、確定できないことが多くあります。説が複数あるものは複数のまま書き、確認できなかったことは確認できなかったと書いています。各ページの末尾に出典を載せていますので、気になる点は出典をあわせてご確認ください。</p>
-<p>メーター（曖昧度・誤用度・トゲ度・定着度）は、調べた資料をもとにした編集上の目安で、統計的な指標ではありません。</p>
-</main>
+<p>流行語の初出や語源は、確定できないことがよくあります。説が複数あるものは複数のまま書き、確認できなかったことは「〜とされる」と書いています。各ページの末尾に出典を載せていますので、あわせてご確認ください。</p>
+<p>誤りに気づいた方は、GitHub の Issue でお知らせください。</p>
+<p><a class="btn btn-sub" href="https://github.com/gendai-aimai-tango-jiten/gendai-aimai-tango-jiten.github.io/issues" rel="noopener">GitHub の Issue を開く</a></p>
+</section>
 """
-        + foot(0)
-    )
+    return page("この辞典について", DESC, body, "/about/", "/og/site.png", "aboutpage")
+
+
+def notfound_page():
+    body = f"""<section class="wrap prose center"><p class="nf-emo">{emoji("1f914", "big-emo", 96)}</p>
+<h1 class="page-title">そのページは見つかりませんでした</h1><p>言葉の意味と同じく、URLもずれていたのかもしれません。</p>
+<p><a class="btn btn-main" href="/">トップへ戻る</a></p></section>"""
+    return page("ページが見つかりません", DESC, body, "/404.html")
 
 
 def main():
-    words = []
-    for p in sorted(DATA.glob("*.json")):
-        words.append(json.loads(p.read_text(encoding="utf-8")))
-    words.sort(key=lambda w: -w["meters"].get("曖昧度", 0))
+    words = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(DATA.glob("*.json"))]
     planned = json.loads((ROOT / "data" / "planned.json").read_text(encoding="utf-8"))
+    quiz = quiz_items(words)
 
+    og_keep = OUT / "og"
+    tmp_og = ROOT / ".og-tmp"
+    if og_keep.exists():
+        shutil.rmtree(tmp_og, ignore_errors=True)
+        shutil.copytree(og_keep, tmp_og)
     if OUT.exists():
         shutil.rmtree(OUT)
-    (OUT / "words").mkdir(parents=True)
+    OUT.mkdir()
     shutil.copytree(ASSETS, OUT / "assets")
+    if tmp_og.exists():
+        shutil.copytree(tmp_og, OUT / "og")
+        shutil.rmtree(tmp_og)
     (OUT / ".nojekyll").write_text("")
 
-    (OUT / "index.html").write_text(index_page(words, planned), encoding="utf-8")
-    (OUT / "about.html").write_text(about_page(), encoding="utf-8")
+    def write(rel, text):
+        p = OUT / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(text, encoding="utf-8")
+
+    write("index.html", index_page(words, planned, quiz))
+    write("quiz/index.html", quiz_page(quiz))
+    write("about/index.html", about_page())
+    write("404.html", notfound_page())
     for w in words:
-        (OUT / "words" / f'{w["slug"]}.html').write_text(word_page(w, words), encoding="utf-8")
-    print(f"built {len(words)} words -> {OUT}")
+        write(f"words/{w['slug']}/index.html", word_page(w, words))
+    write("words.json", json.dumps([{"slug": w["slug"], "word": w["word"]} for w in words], ensure_ascii=False))
+
+    urls = ["/", "/quiz/", "/about/"] + [f"/words/{w['slug']}/" for w in words]
+    write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+          + "".join(f"<url><loc>{BASE_URL}{u}</loc></url>\n" for u in urls) + "</urlset>\n")
+    write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n")
+    print(f"built {len(words)} words, {len(quiz)} quiz items -> {OUT}")
 
 
 if __name__ == "__main__":

@@ -4,62 +4,98 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>現代曖昧単語辞典</title>
-<meta name="description" content="流行っているのに、意味がはっきりしない言葉を、一語ずつ多様な観点から調べてまとめる辞典。">
+<meta name="description" content="流行ってるのに、意味がふわっとしている言葉の辞典。蛙化現象、メロい、ドパガキなどを、語源・意味のズレ・誤用されやすい点から一語ずつ調べました。">
+<link rel="canonical" href="https://gendai-aimai-tango-jiten.github.io/">
+<meta property="og:site_name" content="現代曖昧単語辞典">
 <meta property="og:title" content="現代曖昧単語辞典">
-<meta property="og:description" content="流行っているのに、意味がはっきりしない言葉を、一語ずつ多様な観点から調べてまとめる辞典。">
+<meta property="og:description" content="流行ってるのに、意味がふわっとしている言葉の辞典。蛙化現象、メロい、ドパガキなどを、語源・意味のズレ・誤用されやすい点から一語ずつ調べました。">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://gendai-aimai-tango-jiten.github.io/">
+<meta property="og:image" content="https://gendai-aimai-tango-jiten.github.io/og/site.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f7f9fb">
+<link rel="icon" href="/assets/emoji/1f914.png">
+<link rel="apple-touch-icon" href="/assets/emoji/1f914.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
 </head>
-<body>
-<header class="site-header"><div class="wrap">
-<a class="brand" href="index.html"><span class="brand-mark">曖</span>現代曖昧単語辞典</a>
-<nav><a href="index.html#list">収録語</a><a href="about.html">この辞典について</a></nav>
+<body class="home">
+<a class="skip" href="#main">本文へ</a>
+<header class="hd"><div class="wrap hd-in">
+<a class="logo" href="/"><img class="logo-emo" src="/assets/emoji/1f914.png" alt="" width="28" height="28" loading="lazy" decoding="async"><span>現代曖昧単語辞典</span></a>
+<nav class="hd-nav" aria-label="メニュー">
+<a href="/#words">収録語</a>
+<a href="/quiz/" class="hd-quiz">クイズ</a>
+<a href="/about/">この辞典について</a>
+<button type="button" class="hd-dice" data-random aria-label="ランダムに1語ひらく"><img class="dice-emo" src="/assets/emoji/1f3b2.png" alt="" width="22" height="22" loading="lazy" decoding="async"></button>
+</nav>
 </div></header>
-<main>
-<section class="hero"><div class="wrap">
-<p class="hero-kicker">GENDAI AIMAI TANGO JITEN</p>
-<h1 class="hero-title">現代<br class="sp">曖昧<br class="sp">単語辞典</h1>
-<p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉があります。この辞典では、そうした言葉を一語ずつ取り上げ、語源、広まった経緯、意味の幅、誤用されやすい点を調べてまとめています。</p>
-<div class="hero-stats"><div><b>3</b><span>収録語</span></div><div><b>10</b><span>収録予定</span></div></div>
+<main id="main">
+
+<section class="hero"><div class="wrap hero-in">
+<p class="hero-kicker">流行ってるのに、意味がふわっとしてる言葉の辞典</p>
+<h1 class="hero-title"><span class="mk">現代曖昧単語辞典</span></h1>
+<p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
+<p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉を、一語ずつ調べました。語源、広まった経緯、意味のズレ、誤用されやすい点までまとめています。</p>
+<div class="hero-cta">
+<a class="btn btn-main" href="/quiz/"><img class="btn-emo" src="/assets/emoji/1f9ea.png" alt="" loading="lazy" decoding="async">アリ？ナシ？クイズに挑戦</a>
+<button type="button" class="btn btn-sub" data-random><img class="btn-emo" src="/assets/emoji/1f3b2.png" alt="" loading="lazy" decoding="async">ランダムに1語ひく</button>
+</div>
+<div class="stats">
+<div><b data-count="3">3</b><span>収録語</span></div>
+<div><b data-count="12">12</b><span>見つけた意味のズレ</span></div>
+<div><b data-count="13">13</b><span>参考にした出典</span></div>
+</div>
+</div>
+<div class="hero-float" aria-hidden="true"><img class="fl fl0" src="/assets/emoji/1f4f1.png" alt="" loading="lazy" decoding="async"><img class="fl fl1" src="/assets/emoji/1f438.png" alt="" loading="lazy" decoding="async"><img class="fl fl2" src="/assets/emoji/1fae0.png" alt="" loading="lazy" decoding="async"></div>
+</section>
+
+<section class="wrap sec-block" id="words">
+<div class="block-head"><h2 class="block-title"><span class="mk">曖昧度ランキング</span></h2>
+<p class="block-sub">意味のばらつきが大きい順に並べています。気になる言葉から読んでみてください。</p></div>
+<div class="wgrid"><a class="wc" href="/words/kaerukagensho/"><span class="wc-rank">No.1</span><span class="wc-circle"><img class="wc-emo" src="/assets/emoji/1f438.png" alt="" loading="lazy" decoding="async"></span><span class="wc-reading">かえるかげんしょう</span><span class="wc-word">蛙化現象</span><span class="wc-catch">もともとは「好かれたら冷める」話だった。</span><span class="wc-amb"><span>曖昧度</span><b style="--v:5"></b><em>5</em></span><span class="wc-tags"><i>恋愛</i><i>心理学由来</i><i>意味が変わった言葉</i></span></a><a class="wc" href="/words/dopagaki/"><span class="wc-rank">No.2</span><span class="wc-circle"><img class="wc-emo" src="/assets/emoji/1f4f1.png" alt="" loading="lazy" decoding="async"></span><span class="wc-reading">どぱがき</span><span class="wc-word">ドパガキ</span><span class="wc-catch">よく見かけるのに、口に出す人は少ない言葉。</span><span class="wc-amb"><span>曖昧度</span><b style="--v:4"></b><em>4</em></span><span class="wc-tags"><i>ネットスラング</i><i>脳科学っぽい言葉</i><i>SNS・動画</i></span></a><a class="wc" href="/words/meroi/"><span class="wc-rank">No.3</span><span class="wc-circle"><img class="wc-emo" src="/assets/emoji/1fae0.png" alt="" loading="lazy" decoding="async"></span><span class="wc-reading">めろい</span><span class="wc-word">メロい</span><span class="wc-catch">とろける。でも、色気をどこまで含むかは人それぞれ。</span><span class="wc-amb"><span>曖昧度</span><b style="--v:3"></b><em>3</em></span><span class="wc-tags"><i>恋愛</i><i>推し文化</i><i>オノマトペ由来</i></span></a></div>
+</section>
+
+<section class="quiz-band"><div class="wrap qb-in">
+<div class="qb-text">
+<p class="qb-kicker"><img class="inline-emo" src="/assets/emoji/1f9ea.png" alt="" loading="lazy" decoding="async">アリ？ナシ？クイズ</p>
+<h2>あなたの<span class="mk">曖昧語力</span>は何点？</h2>
+<p>実際によくある使い方を見て、「アリ」「ビミョー」「ナシ」を判定するクイズです。全10問。結果はシェアできます。</p>
+<a class="btn btn-main" href="/quiz/">クイズをはじめる</a>
+</div>
+<div class="qb-sample" aria-hidden="true">
+<p class="qs-word"><img class="inline-emo" src="/assets/emoji/1f4f1.png" alt="" loading="lazy" decoding="async">ドパガキ</p>
+<p class="qs-text">「イントロなしでいきなりサビから始まる曲が増えたのって、ドパガキ向けなのかな。」</p>
+<div class="qs-btns"><span class="v-ok">アリ</span><span class="v-warn">ビミョー</span><span class="v-ng">ナシ</span></div>
+</div>
 </div></section>
 
-<section class="wrap" id="list">
-<div class="list-head">
-<h2 class="list-title">収録語</h2>
-<div class="controls">
-<label class="search"><span class="sr">言葉を探す</span><input id="q" type="search" placeholder="言葉・読み・タグで探す" autocomplete="off"></label>
-<label class="sort"><span class="sr">並び順</span><select id="sort">
-<option value="amb">曖昧度が高い順</option>
-<option value="mis">誤用度が高い順</option>
-<option value="date">更新が新しい順</option>
-<option value="kana">五十音順</option>
-</select></label>
+<section class="wrap sec-block">
+<div class="twocol">
+<div class="panel">
+<h2><img class="inline-emo" src="/assets/emoji/1f4dd.png" alt="" loading="lazy" decoding="async">次に調べる言葉</h2>
+<ul class="planned"><li>界隈</li><li>しごでき</li><li>言語化</li><li>親ガチャ</li><li>自己肯定感</li><li>地雷系</li><li>エモい</li><li>推し活</li><li>フレネミー</li><li>滅</li></ul>
+<p class="panel-note">「この言葉も調べてほしい」というリクエストを受け付けています。</p>
+<div class="share share-req" data-text="「現代曖昧単語辞典」に、この言葉も載せてほしい：" data-url="https://gendai-aimai-tango-jiten.github.io/"><span class="share-label">リクエストをポストする</span><button type="button" class="sbtn sx" data-share="x" aria-label="Xでシェア"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>ポスト</button><button type="button" class="sbtn sl" data-share="line" aria-label="LINEで送る">LINE</button><button type="button" class="sbtn sc" data-share="copy" aria-label="リンクをコピー">リンクをコピー</button></div>
+</div>
+<div class="panel">
+<h2><img class="inline-emo" src="/assets/emoji/1f4d6.png" alt="" loading="lazy" decoding="async">この辞典の読み方</h2>
+<p>各ページでは、言葉の意味を「もともとの意味」「広がった使い方」「出典から離れた使い方」に分けて整理しています。正解を一つに決めるのではなく、どこでズレが生まれたかを見えるようにするのがねらいです。</p>
+<ul class="mhelp"><li><b>曖昧度</b>人によって指す範囲がどれだけばらつくか</li><li><b>誤用度</b>本来の意味とずれた使われ方がどれだけ多いか</li><li><b>トゲ度</b>人に向けて使ったとき、きつく響くおそれ</li><li><b>通じる度</b>上の世代や別の界隈にも通じるか</li></ul>
+<p><a href="/about/">この辞典について詳しく</a></p>
 </div>
 </div>
-<div class="chips" role="group" aria-label="タグで絞り込む"><button class="chip active" data-tag="">すべて</button><button class="chip" data-tag="恋愛">恋愛</button><button class="chip" data-tag="心理学由来">心理学由来</button><button class="chip" data-tag="意味が変わった言葉">意味が変わった言葉</button><button class="chip" data-tag="2023年流行">2023年流行</button><button class="chip" data-tag="ネットスラング">ネットスラング</button><button class="chip" data-tag="脳科学っぽい言葉">脳科学っぽい言葉</button><button class="chip" data-tag="SNS・動画">SNS・動画</button><button class="chip" data-tag="2025年流行">2025年流行</button><button class="chip" data-tag="推し文化">推し文化</button><button class="chip" data-tag="オノマトペ由来">オノマトペ由来</button><button class="chip" data-tag="2024年流行">2024年流行</button></div>
-<div class="grid" id="grid"><a class="wcard" href="words/kaerukagensho.html" data-tags="恋愛|心理学由来|意味が変わった言葉|2023年流行" data-search="蛙化現象かえるかげんしょうもとは「好きな人に好かれたとたん、相手が嫌になる」心理。いまは「相手のささいな言動で一気に冷める」意味で使われることが多い。恋愛心理学由来意味が変わった言葉2023年流行" data-amb="5" data-mis="5" data-date="2026-11-07" data-kana="かえるかげんしょう"><span class="wcard-reading">かえるかげんしょう</span><span class="wcard-word">蛙化現象</span><span class="wcard-one">もとは「好きな人に好かれたとたん、相手が嫌になる」心理。いまは「相手のささいな言動で一気に冷める」意味で使われることが多い。</span><div class="meters compact"><div class="meter sm" title="人によって指す範囲がどれだけばらつくか"><span>曖昧度</span><b aria-label="5/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></b></div><div class="meter sm" title="本来の意味や出典とずれた使われ方がどれだけ多いか"><span>誤用度</span><b aria-label="5/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></b></div><div class="meter sm" title="人に向けて使ったときに攻撃的・失礼に響くおそれ"><span>トゲ度</span><b aria-label="3/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></b></div><div class="meter sm" title="一部の界隈を越えて広く通じるか"><span>定着度</span><b aria-label="4/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></b></div></div><span class="wcard-tags"><i>恋愛</i><i>心理学由来</i><i>意味が変わった言葉</i><i>2023年流行</i></span></a><a class="wcard" href="words/dopagaki.html" data-tags="ネットスラング|脳科学っぽい言葉|SNS・動画|2025年流行" data-search="ドパガキどぱがき「ドーパミン中毒のガキ」の略。ショート動画のような強い刺激をすぐ求め、長いものに集中できない人をからかう言葉。自虐にも使う。ネットスラング脳科学っぽい言葉SNS・動画2025年流行" data-amb="4" data-mis="4" data-date="2026-11-07" data-kana="どぱがき"><span class="wcard-reading">どぱがき</span><span class="wcard-word">ドパガキ</span><span class="wcard-one">「ドーパミン中毒のガキ」の略。ショート動画のような強い刺激をすぐ求め、長いものに集中できない人をからかう言葉。自虐にも使う。</span><div class="meters compact"><div class="meter sm" title="人によって指す範囲がどれだけばらつくか"><span>曖昧度</span><b aria-label="4/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></b></div><div class="meter sm" title="本来の意味や出典とずれた使われ方がどれだけ多いか"><span>誤用度</span><b aria-label="4/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></b></div><div class="meter sm" title="人に向けて使ったときに攻撃的・失礼に響くおそれ"><span>トゲ度</span><b aria-label="5/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></b></div><div class="meter sm" title="一部の界隈を越えて広く通じるか"><span>定着度</span><b aria-label="3/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></b></div></div><span class="wcard-tags"><i>ネットスラング</i><i>脳科学っぽい言葉</i><i>SNS・動画</i><i>2025年流行</i></span></a><a class="wcard" href="words/meroi.html" data-tags="恋愛|推し文化|オノマトペ由来|2024年流行" data-search="メロいめろいメロメロになるほど魅力的だ、という気持ちを表す形容詞。「かっこいい」「かわいい」「色っぽい」のどれとも少しずつ違う。恋愛推し文化オノマトペ由来2024年流行" data-amb="3" data-mis="2" data-date="2026-11-07" data-kana="めろい"><span class="wcard-reading">めろい</span><span class="wcard-word">メロい</span><span class="wcard-one">メロメロになるほど魅力的だ、という気持ちを表す形容詞。「かっこいい」「かわいい」「色っぽい」のどれとも少しずつ違う。</span><div class="meters compact"><div class="meter sm" title="人によって指す範囲がどれだけばらつくか"><span>曖昧度</span><b aria-label="3/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i></b></div><div class="meter sm" title="本来の意味や出典とずれた使われ方がどれだけ多いか"><span>誤用度</span><b aria-label="2/5"><i class="on"></i><i class="on"></i><i class=""></i><i class=""></i><i class=""></i></b></div><div class="meter sm" title="人に向けて使ったときに攻撃的・失礼に響くおそれ"><span>トゲ度</span><b aria-label="1/5"><i class="on"></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i></b></div><div class="meter sm" title="一部の界隈を越えて広く通じるか"><span>定着度</span><b aria-label="4/5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i></b></div></div><span class="wcard-tags"><i>恋愛</i><i>推し文化</i><i>オノマトペ由来</i><i>2024年流行</i></span></a></div>
-<p class="empty" id="empty" hidden>条件に合う言葉はまだ収録されていません。</p>
 </section>
 
-<section class="wrap twocol">
-<div class="panel">
-<h2>メーターの見方</h2>
-<p>各項目を5段階で示しています。数値は調べた資料をもとにした編集部の目安です。</p>
-<ul class="meter-help"><li><b>曖昧度</b>人によって指す範囲がどれだけばらつくか</li><li><b>誤用度</b>本来の意味や出典とずれた使われ方がどれだけ多いか</li><li><b>トゲ度</b>人に向けて使ったときに攻撃的・失礼に響くおそれ</li><li><b>定着度</b>一部の界隈を越えて広く通じるか</li></ul>
-</div>
-<div class="panel">
-<h2>収録予定の言葉</h2>
-<ul class="planned"><li>界隈</li><li>しごでき</li><li>言語化</li><li>親ガチャ</li><li>自己肯定感</li><li>地雷系</li><li>エモい</li><li>推し活</li><li>フレネミー</li><li>滅</li></ul>
-</div>
-</section>
 </main>
-<footer class="site-footer"><div class="wrap">
-<p>現代曖昧単語辞典 — 言葉の意味は使う人の数だけ揺れます。ここに書いたのは調べた時点での整理です。</p>
-<p><a href="index.html">トップ</a> ・ <a href="about.html">この辞典について</a></p>
+<footer class="ft"><div class="wrap">
+<p class="ft-logo"><img class="logo-emo" src="/assets/emoji/1f914.png" alt="" width="24" height="24" loading="lazy" decoding="async">現代曖昧単語辞典</p>
+<p>流行っているのに、意味がふわっとしている言葉を、一語ずつ調べてまとめています。書いてあるのは調べた時点の整理です。</p>
+<p class="ft-links"><a href="/">トップ</a><a href="/quiz/">アリ？ナシ？クイズ</a><a href="/about/">この辞典について</a><a href="https://github.com/gendai-aimai-tango-jiten/gendai-aimai-tango-jiten.github.io" rel="noopener">GitHub</a></p>
+<p class="ft-small">絵文字は Google の Noto Emoji（Apache License 2.0）を使っています。</p>
 </div></footer>
-<script src="assets/app.js"></script>
+<script src="/assets/site.js" defer></script>
 </body>
 </html>

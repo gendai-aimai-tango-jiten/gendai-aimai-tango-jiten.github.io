@@ -1,22 +1,39 @@
 # 現代曖昧単語辞典
 
-流行っているのに意味がはっきりしない言葉を、一語一ページでまとめる静的サイトです。GitHub Pages で公開します。
+流行っているのに意味がふわっとしている言葉を、一語一ページでまとめる静的サイトです。
+https://gendai-aimai-tango-jiten.github.io/
+
+見た目はデザインシステム「黒田悠介」（コミュニティ図鑑・あしたの転機観測所と共通）をもとにしています。
 
 ## 構成
 
 ```
 data/words/*.json   1単語＝1ファイルのデータ
-data/planned.json   トップページの「収録予定」
-assets/             CSS と JavaScript
-build.py            データから docs/ を生成するスクリプト（Python 3 標準ライブラリのみ）
+data/planned.json   トップの「次に調べる言葉」
+assets/             CSS・JavaScript・絵文字（Noto Emoji 128px）
+tools/make_og.py    共有画像（1200×630）を docs/og/ に作る（Pillow が必要）
+tools/emoji512/     共有画像に使う Noto Emoji 512px とライセンス
+build.py            データから docs/ を作る（Python 3 標準ライブラリのみ）
 docs/               生成物（GitHub Pages の公開フォルダ）
 ```
 
+## ページ
+
+| URL | 中身 |
+|---|---|
+| / | トップ。曖昧度ランキング、クイズへの入口、次に調べる言葉とリクエスト |
+| /words/{slug}/ | 単語ページ。30秒でわかる要点、曖昧メーター、あなたはどの意味派？、意味の地図、アリ？ナシ？、語源、経緯、ズレやすいポイント、観点別の解説、言い換え、関連語、出典 |
+| /quiz/ | アリ？ナシ？曖昧語クイズ。各単語の使用例（examples）からランダムに10問。結果をシェアできる |
+| /about/ | この辞典について |
+
 ## 言葉を追加する
 
-1. `data/words/` にある既存のJSONをコピーし、`slug`（URLになる英数字）と中身を書き換える
-2. `python3 build.py` を実行する
-3. `docs/` をコミットして push する
+1. `data/words/` の既存のJSONをコピーし、`slug`（URLになる英数字）と中身を書き換える
+2. 絵文字を決め、Noto Emoji の画像を2つ置く（コードポイントが `1f438` なら）
+   - `assets/emoji/1f438.png` ← `https://raw.githubusercontent.com/googlefonts/noto-emoji/main/2D/png/128/emoji_u1f438.png`
+   - `tools/emoji512/1f438.png` ← 同じ場所の `512` の画像
+3. `python3 build.py` で docs/ を作り、`python3 tools/make_og.py` で共有画像を作る
+4. コミットして push する
 
 本文は空行（`\n\n`）で段落が分かれます。`**語**` で太字になります。
 
@@ -25,18 +42,21 @@ docs/               生成物（GitHub Pages の公開フォルダ）
 | キー | 内容 |
 |---|---|
 | word / reading / pos | 見出し語・読み・品詞 |
-| tags | トップページの絞り込みに使うタグ |
+| emoji | Noto Emoji のコードポイント |
+| catch | ひとことのキャッチ（カード・共有画像・ページ冒頭に出る） |
+| oneliner | 説明文（検索結果やシェアの説明に使う） |
+| tldr | 30秒でわかる要点（3つ） |
+| tags | タグ |
 | origin_date / peak / updated | 初出・流行のピーク・最終更新日 |
-| meters | 曖昧度・誤用度・トゲ度・定着度（1〜5） |
-| oneliner | 一覧に出る一文の説明 |
-| definition | ひとことで言うと |
-| usages | 意味の地図（type は 原義／拡張／誤用寄り） |
+| meters | 曖昧度・誤用度・トゲ度・通じる度（1〜5） |
+| definition | どういう意味？ |
+| usages | 意味の地図と「どの意味派？」の選択肢（type は 原義／拡張／誤用寄り） |
 | etymology | 語源・成り立ち |
 | timeline | 広まった経緯 |
 | misuses | ズレやすいポイント |
-| examples | 使用例（verdict は ok／warn／ng） |
-| perspectives | 多様な観点から |
-| who_where | 誰が・どこで使うか |
+| examples | アリ？ナシ？（verdict は ok／warn／ng）。クイズの問題にもなる |
+| perspectives | いろんな観点から見る（タブで切り替え） |
+| who_where | 誰が・どこで使う？ |
 | paraphrase | 言い換え |
 | related | 関連語（収録済みの語なら自動でリンク） |
 | sources | 出典 |
@@ -47,7 +67,3 @@ docs/               生成物（GitHub Pages の公開フォルダ）
 python3 build.py
 python3 -m http.server -d docs 8000
 ```
-
-## GitHub Pages の設定
-
-リポジトリの Settings → Pages で、Source を「Deploy from a branch」、Branch を `main` の `/docs` にします。
