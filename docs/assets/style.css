@@ -86,11 +86,10 @@ button { font: inherit; color: inherit; }
 .hero-catch { margin: 18px 0 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.45; }
 .hero-catch em { font-style: normal; color: var(--sky); }
 .hero-lead { max-width: 36em; margin: 18px 0 0; color: var(--text-body); }
-.hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-.stats { display: flex; flex-wrap: wrap; gap: 12px 36px; margin-top: 36px; }
-.stats div { display: flex; flex-direction: column; }
-.stats b { font-family: var(--font-display); font-weight: 900; font-size: 44px; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.stats span { font-size: 13px; color: var(--text-sub); font-weight: 600; }
+.hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 32px; }
+.stat { display: flex; align-items: baseline; gap: 8px; }
+.stat b { font-family: var(--font-display); font-weight: 900; font-size: 44px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--text-sub); font-weight: 600; }
 .hero-float { position: absolute; inset: 0; pointer-events: none; }
 .fl { position: absolute; width: 120px; height: 120px; opacity: .95; filter: drop-shadow(0 10px 20px rgba(0,0,0,.12)); animation: bob 6s ease-in-out infinite; }
 .fl0 { right: 8%; top: 18%; }
@@ -309,9 +308,8 @@ button { font: inherit; color: inherit; }
   .hd-nav a[href='/#words'] { display: none; }
   .hd-dice { width: 36px; height: 36px; }
   .hero { padding: 40px 0 40px; }
-  .hero-cta .btn { width: 100%; }
-  .stats { gap: 12px 24px; }
-  .stats b { font-size: 34px; }
+  .hero-cta .btn { flex: 1; }
+  .stat b { font-size: 36px; }
   .fl0 { right: -20px; top: 8px; width: 96px; height: 96px; }
   .fl1, .fl2 { display: none; }
   .wgrid, .twocol, .miss, .rels, .mbars { grid-template-columns: 1fr; }
@@ -328,3 +326,7 @@ button { font: inherit; color: inherit; }
 
 /* 日本語の見出しを文節で折り返す（対応ブラウザのみ） */
 .hero-catch, .whero-catch, .wc-catch, .block-title, .endcta-title, .wsec-title, .tldr li { word-break: auto-phrase; text-wrap: pretty; }
+
+/* カードの曖昧度をいちばん下にそろえる（タグの行数が違っても高さが合う） */
+.wc-tags { order: 1; margin-top: 14px; }
+.wc-amb { order: 2; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }

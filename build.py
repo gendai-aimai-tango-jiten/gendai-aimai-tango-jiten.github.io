@@ -147,20 +147,14 @@ def word_card(w, rank=None):
 def index_page(words):
     ranked = sorted(words, key=lambda w: (-w["meters"].get("曖昧度", 0), -w["meters"].get("誤用度", 0)))
     cards = "".join(word_card(w, i + 1) for i, w in enumerate(ranked))
-    n_usage = sum(len(w.get("usages", [])) for w in words)
-    n_src = sum(len(w.get("sources", [])) for w in words)
     body = f"""
 <section class="hero"><div class="wrap hero-in">
 <h1 class="hero-title"><span class="mk">{SITE}</span></h1>
 <p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
 <p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉を、一語ずつ調べました。語源、広まった経緯、意味のズレ、誤用されやすい点までまとめています。</p>
 <div class="hero-cta">
+<div class="stat"><b data-count="{len(words)}">{len(words)}</b><span>収録語</span></div>
 <button type="button" class="btn btn-main" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1つ見てみる</button>
-</div>
-<div class="stats">
-<div><b data-count="{len(words)}">{len(words)}</b><span>収録語</span></div>
-<div><b data-count="{n_usage}">{n_usage}</b><span>見つけた意味のズレ</span></div>
-<div><b data-count="{n_src}">{n_src}</b><span>参考にした出典</span></div>
 </div>
 </div>
 <div class="hero-float" aria-hidden="true">{"".join(emoji(w["emoji"], "fl fl" + str(i)) for i, w in enumerate(words))}</div>
