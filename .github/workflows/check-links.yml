@@ -1,0 +1,42 @@
+name: 出典のリンク点検
+
+# 毎週月曜 7:00（日本時間）に出典のURLを開いて確かめ、問題があれば Issue を作る
+on:
+  schedule:
+    - cron: "0 22 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 点検
+        id: check
+        run: |
+          set +e
+          python3 tools/check_words.py --links > result.txt 2>&1
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat result.txt
+      - name: 問題があれば Issue を作る
+        if: steps.check.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "毎週のリンク点検で、確かめが必要な出典が見つかりました。"
+            echo
+            echo '```'
+            cat result.txt
+            echo '```'
+            echo
+            echo "ブラウザで開けるのに自動のアクセスを断るサイトなら config/linkcheck.json の refusing_hosts に足し、ページが消えていたら出典を差し替えてください。"
+          } > body.md
+          gh issue create --title "出典のリンク点検：要確認（$(date +%Y-%m-%d)）" --body-file body.md

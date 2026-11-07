@@ -7,6 +7,7 @@
 """
 import json
 import sys
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -63,10 +64,19 @@ def main():
     if "--links" in sys.argv:
         urls = sorted({s["url"] for p in (ROOT / "data" / "words").glob("*.json")
                        for s in json.loads(p.read_text(encoding="utf-8")).get("sources", [])})
+        # 自動のアクセスを断るがブラウザでは開けるサイトは、問題として数えない
+        cfg = ROOT / "config" / "linkcheck.json"
+        refusing = set(json.loads(cfg.read_text(encoding="utf-8")).get("refusing_hosts", [])) if cfg.exists() else set()
+        skipped = 0
         with ThreadPoolExecutor(8) as ex:
             for url, st in ex.map(check_url, urls):
-                if st != 200:
-                    problems.append(f"リンク {st}: {url}")
+                if st == 200:
+                    continue
+                if urllib.parse.urlparse(url).hostname in refusing and st in (403, 503):
+                    skipped += 1
+                    continue
+                problems.append(f"リンク {st}: {url}")
+        print(f"リンク {len(urls)}件を点検（自動のアクセスを断るサイト {skipped}件は除外）")
 
     print(f"{len(words)}語を点検")
     for x in problems:

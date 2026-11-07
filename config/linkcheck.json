@@ -1,0 +1,16 @@
+{
+  "_note": "自動のアクセスを断る（403）または一時的に応答しない（503）が、ブラウザでは開けるサイト。リンク点検でここにあるサイトは問題として数えない。",
+  "refusing_hosts": [
+    "webtan.impress.co.jp",
+    "markezine.jp",
+    "www.merriam-webster.com",
+    "www.etymonline.com",
+    "dic.pixiv.net",
+    "salon.mainichi-kotoba.jp",
+    "www.issoh.co.jp",
+    "u-gakugei.repo.nii.ac.jp",
+    "kansai-u.repo.nii.ac.jp",
+    "waseda.repo.nii.ac.jp",
+    "ir.lib.hiroshima-u.ac.jp"
+  ]
+}
