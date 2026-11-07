@@ -24,8 +24,7 @@ BRAND_EMOJI = "1f914"
 METERS = [
     ("曖昧度", "人によって指す範囲がどれだけばらつくか"),
     ("誤用度", "本来の意味とずれた使われ方がどれだけ多いか"),
-    ("トゲ度", "人に向けて使ったとき、きつく響くおそれ"),
-    ("通じる度", "上の世代や別の界隈にも通じるか"),
+    ("通用度", "上の世代や別の界隈にも通じるか"),
 ]
 USAGE = {
     "原義": ("u-origin", "もともとの意味"),
@@ -74,7 +73,8 @@ def share_bar(text, url, label="シェアする", cls=""):
         f'<div class="share {cls}" data-text="{esc(text)}" data-url="{esc(url)}">'
         f'<span class="share-label">{esc(label)}</span>'
         '<button type="button" class="sbtn sx" data-share="x" aria-label="Xでシェア"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>ポスト</button>'
-        '<button type="button" class="sbtn sl" data-share="line" aria-label="LINEで送る">LINE</button>'
+        '<button type="button" class="sbtn sf" data-share="facebook" aria-label="Facebookでシェア"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07"/></svg>Facebook</button>'
+        '<button type="button" class="sbtn st" data-share="threads" aria-label="Threadsでシェア"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.7 11.1c-.1 0-.2-.1-.3-.1-.2-3-1.8-4.7-4.6-4.7h-.1c-1.7 0-3.1.7-3.9 2l1.6 1.1c.6-.9 1.6-1.1 2.3-1.1 1 0 1.7.3 2.2.9.3.4.6 1 .7 1.7-.8-.1-1.7-.2-2.6-.1-2.6.1-4.3 1.7-4.2 3.8.1 1.1.6 2 1.5 2.6.8.5 1.8.8 2.8.7 1.4-.1 2.5-.6 3.2-1.6.6-.7.9-1.7 1-2.9.7.4 1.2.9 1.5 1.6.5 1.1.5 2.9-1 4.4-1.3 1.3-2.8 1.8-5.1 1.8-2.6 0-4.5-.8-5.8-2.5C5.6 17.1 5 15 5 12.4s.6-4.7 1.9-6.3C8.2 4.4 10.1 3.6 12.7 3.6c2.6 0 4.6.8 5.9 2.5.6.8 1.1 1.8 1.5 3l1.9-.5c-.4-1.5-1.1-2.7-1.9-3.8C18.4 2.7 15.9 1.6 12.7 1.6h-.1C9.4 1.6 7 2.7 5.4 4.8 3.9 6.6 3.1 9.2 3.1 12.4s.8 5.7 2.3 7.6c1.6 2.1 4.1 3.2 7.2 3.2h.1c2.8 0 4.7-.7 6.3-2.3 2.1-2.1 2-4.7 1.3-6.3-.5-1.2-1.4-2.1-2.6-2.7zm-4.9 4.6c-1.1.1-2.3-.4-2.4-1.5 0-.8.6-1.7 2.4-1.8h.6c.7 0 1.3.1 1.9.2-.2 2.6-1.4 3-2.5 3.1z"/></svg>Threads</button>'
         '<button type="button" class="sbtn sc" data-share="copy" aria-label="リンクをコピー">リンクをコピー</button>'
         "</div>"
     )
@@ -112,9 +112,8 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <a class="logo" href="/">{emoji(BRAND_EMOJI, "logo-emo", 28)}<span>{SITE}</span></a>
 <nav class="hd-nav" aria-label="メニュー">
 <a href="/#words">収録語</a>
-<a href="/quiz/" class="hd-quiz">クイズ</a>
 <a href="/about/">この辞典について</a>
-<button type="button" class="hd-dice" data-random aria-label="ランダムに1語ひらく">{emoji("1f3b2", "dice-emo", 22)}</button>
+<button type="button" class="hd-dice" data-random aria-label="ランダムに1つ見てみる" title="ランダムに1つ見てみる">{emoji("1f3b2", "dice-emo", 22)}</button>
 </nav>
 </div></header>
 <main id="main">
@@ -122,9 +121,8 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 </main>
 <footer class="ft"><div class="wrap">
 <p class="ft-logo">{emoji(BRAND_EMOJI, "logo-emo", 24)}{SITE}</p>
-<p>流行っているのに、意味がふわっとしている言葉を、一語ずつ調べてまとめています。書いてあるのは調べた時点の整理です。</p>
-<p class="ft-links"><a href="/">トップ</a><a href="/quiz/">アリ？ナシ？クイズ</a><a href="/about/">この辞典について</a><a href="https://github.com/gendai-aimai-tango-jiten/gendai-aimai-tango-jiten.github.io" rel="noopener">GitHub</a></p>
-<p class="ft-small">絵文字は Google の Noto Emoji（Apache License 2.0）を使っています。</p>
+<p>流行っているのに意味がふわっとしている言葉を一語ずつ調べてまとめています。</p>
+<p class="ft-links"><a href="/">トップ</a><a href="/about/">この辞典について</a></p>
 </div></footer>
 <script src="/assets/site.js" defer></script>
 </body>
@@ -147,32 +145,18 @@ def word_card(w, rank=None):
     )
 
 
-def quiz_items(words):
-    items = []
-    for w in words:
-        for e in w.get("examples", []):
-            items.append({"slug": w["slug"], "word": w["word"], "emoji": w["emoji"],
-                          "text": e["text"], "answer": e["verdict"], "note": e["note"]})
-    return items
-
-
-def index_page(words, planned, quiz):
+def index_page(words):
     ranked = sorted(words, key=lambda w: (-w["meters"].get("曖昧度", 0), -w["meters"].get("誤用度", 0)))
     cards = "".join(word_card(w, i + 1) for i, w in enumerate(ranked))
     n_usage = sum(len(w.get("usages", [])) for w in words)
     n_src = sum(len(w.get("sources", [])) for w in words)
-    sample = quiz[1] if len(quiz) > 1 else quiz[0]
-    req_text = "「現代曖昧単語辞典」に、この言葉も載せてほしい："
-    planned_html = "".join(f"<li>{esc(p)}</li>" for p in planned)
     body = f"""
 <section class="hero"><div class="wrap hero-in">
-<p class="hero-kicker">流行ってるのに、意味がふわっとしてる言葉の辞典</p>
 <h1 class="hero-title"><span class="mk">{SITE}</span></h1>
 <p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
 <p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉を、一語ずつ調べました。語源、広まった経緯、意味のズレ、誤用されやすい点までまとめています。</p>
 <div class="hero-cta">
-<a class="btn btn-main" href="/quiz/">{emoji("1f9ea", "btn-emo")}アリ？ナシ？クイズに挑戦</a>
-<button type="button" class="btn btn-sub" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1語ひく</button>
+<button type="button" class="btn btn-main" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1つ見てみる</button>
 </div>
 <div class="stats">
 <div><b data-count="{len(words)}">{len(words)}</b><span>収録語</span></div>
@@ -189,34 +173,14 @@ def index_page(words, planned, quiz):
 <div class="wgrid">{cards}</div>
 </section>
 
-<section class="quiz-band"><div class="wrap qb-in">
-<div class="qb-text">
-<p class="qb-kicker">{emoji("1f9ea", "inline-emo")}アリ？ナシ？クイズ</p>
-<h2>あなたの<span class="mk">曖昧語力</span>は何点？</h2>
-<p>実際によくある使い方を見て、「アリ」「ビミョー」「ナシ」を判定するクイズです。全{min(10, len(quiz))}問。結果はシェアできます。</p>
-<a class="btn btn-main" href="/quiz/">クイズをはじめる</a>
-</div>
-<div class="qb-sample" aria-hidden="true">
-<p class="qs-word">{emoji(sample["emoji"], "inline-emo")}{esc(sample["word"])}</p>
-<p class="qs-text">「{esc(sample["text"])}」</p>
-<div class="qs-btns"><span class="v-ok">アリ</span><span class="v-warn">ビミョー</span><span class="v-ng">ナシ</span></div>
-</div>
-</div></section>
-
 <section class="wrap sec-block">
-<div class="twocol">
-<div class="panel">
-<h2>{emoji("1f4dd", "inline-emo")}次に調べる言葉</h2>
-<ul class="planned">{planned_html}</ul>
-<p class="panel-note">「この言葉も調べてほしい」というリクエストを受け付けています。</p>
-{share_bar(req_text, BASE_URL + "/", label="リクエストをポストする", cls="share-req")}
-</div>
-<div class="panel">
+<div class="panel guide">
+<div class="guide-text">
 <h2>{emoji("1f4d6", "inline-emo")}この辞典の読み方</h2>
-<p>各ページでは、言葉の意味を「もともとの意味」「広がった使い方」「出典から離れた使い方」に分けて整理しています。正解を一つに決めるのではなく、どこでズレが生まれたかを見えるようにするのがねらいです。</p>
-<ul class="mhelp">{"".join(f"<li><b>{k}</b>{esc(v)}</li>" for k, v in METERS)}</ul>
+<p>各ページでは、言葉の意味を「もともとの意味」「広がった使い方」「出典から離れた使い方」に分けて整理。正解を一つに決めるのではなくどこでズレが生まれたかを知ることができます。</p>
 <p><a href="/about/">この辞典について詳しく</a></p>
 </div>
+<ul class="mhelp">{"".join(f"<li><b>{k}</b>{esc(v)}</li>" for k, v in METERS)}</ul>
 </div>
 </section>
 """
@@ -344,34 +308,10 @@ def word_page(w, words):
 <section class="wrap sec-block">
 <div class="block-head"><h2 class="block-title"><span class="mk">ほかの曖昧な言葉</span></h2></div>
 <div class="wgrid">{"".join(word_card(x) for x in others)}</div>
-<div class="center"><a class="btn btn-main" href="/quiz/">{emoji("1f9ea", "btn-emo")}アリ？ナシ？クイズに挑戦</a></div>
 </section>
 """
     return page(f"{w['word']}とは？意味・語源・使い方のズレ", f"{w['catch']} {w['oneliner']}", body,
                 f"/words/{w['slug']}/", f"/og/{w['slug']}.png", "wordpage")
-
-
-def quiz_page(quiz):
-    data = json.dumps(quiz, ensure_ascii=False).replace("</", "<\\/")
-    body = f"""
-<section class="quiz wrap" data-base="{BASE_URL}">
-<div class="qz-start" id="qz-start">
-<p class="qz-kicker">{emoji("1f9ea", "inline-emo")}アリ？ナシ？クイズ</p>
-<h1 class="qz-title">あなたの<span class="mk">曖昧語力</span>は何点？</h1>
-<p class="qz-lead">流行語のよくある使い方を見て、「アリ」「ビミョー」「ナシ」を判定してください。全{min(10, len(quiz))}問、1分ほどで終わります。</p>
-<ul class="qz-rule"><li><b class="v-ok">アリ</b>本来の意味でも、いまの使い方でも自然</li><li><b class="v-warn">ビミョー</b>使う人はいるが、ずれていたり角が立ったりする</li><li><b class="v-ng">ナシ</b>意味が合っていない</li></ul>
-<button type="button" class="btn btn-main btn-xl" id="qz-go">はじめる</button>
-</div>
-<div class="qz-play" id="qz-play" hidden>
-<div class="qz-prog"><span id="qz-n">1</span> / <span id="qz-total">10</span><div class="qz-bar"><i id="qz-bar"></i></div></div>
-<div class="qz-card" id="qz-card"></div>
-</div>
-<div class="qz-result" id="qz-result" hidden></div>
-</section>
-<script id="quiz-data" type="application/json">{data}</script>
-"""
-    return page("アリ？ナシ？曖昧語クイズ", "流行語のよくある使い方を「アリ」「ビミョー」「ナシ」で判定するクイズ。あなたの曖昧語力は何点？", body,
-                "/quiz/", "/og/quiz.png", "quizpage")
 
 
 def about_page():
@@ -392,11 +332,9 @@ def about_page():
 <li>言い換え、関連語、出典</li>
 </ul>
 <h2>曖昧メーター</h2>
-<p>曖昧度・誤用度・トゲ度・通じる度を5段階で示しています。調べた資料をもとに編集部が付けた目安で、統計的な指標ではありません。</p>
+<p>曖昧度・誤用度・通用度を5段階で示しています。調べた資料をもとに編集部が付けた目安で、統計的な指標ではありません。</p>
 <h2>情報の扱い</h2>
 <p>流行語の初出や語源は、確定できないことがよくあります。説が複数あるものは複数のまま書き、確認できなかったことは「〜とされる」と書いています。各ページの末尾に出典を載せていますので、あわせてご確認ください。</p>
-<p>誤りに気づいた方は、GitHub の Issue でお知らせください。</p>
-<p><a class="btn btn-sub" href="https://github.com/gendai-aimai-tango-jiten/gendai-aimai-tango-jiten.github.io/issues" rel="noopener">GitHub の Issue を開く</a></p>
 </section>
 """
     return page("この辞典について", DESC, body, "/about/", "/og/site.png", "aboutpage")
@@ -411,8 +349,6 @@ def notfound_page():
 
 def main():
     words = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(DATA.glob("*.json"))]
-    planned = json.loads((ROOT / "data" / "planned.json").read_text(encoding="utf-8"))
-    quiz = quiz_items(words)
 
     og_keep = OUT / "og"
     tmp_og = ROOT / ".og-tmp"
@@ -433,19 +369,18 @@ def main():
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(text, encoding="utf-8")
 
-    write("index.html", index_page(words, planned, quiz))
-    write("quiz/index.html", quiz_page(quiz))
+    write("index.html", index_page(words))
     write("about/index.html", about_page())
     write("404.html", notfound_page())
     for w in words:
         write(f"words/{w['slug']}/index.html", word_page(w, words))
     write("words.json", json.dumps([{"slug": w["slug"], "word": w["word"]} for w in words], ensure_ascii=False))
 
-    urls = ["/", "/quiz/", "/about/"] + [f"/words/{w['slug']}/" for w in words]
+    urls = ["/", "/about/"] + [f"/words/{w['slug']}/" for w in words]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{BASE_URL}{u}</loc></url>\n" for u in urls) + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n")
-    print(f"built {len(words)} words, {len(quiz)} quiz items -> {OUT}")
+    print(f"built {len(words)} words -> {OUT}")
 
 
 if __name__ == "__main__":

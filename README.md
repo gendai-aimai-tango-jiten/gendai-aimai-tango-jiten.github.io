@@ -9,7 +9,6 @@ https://gendai-aimai-tango-jiten.github.io/
 
 ```
 data/words/*.json   1単語＝1ファイルのデータ
-data/planned.json   トップの「次に調べる言葉」
 assets/             CSS・JavaScript・絵文字（Noto Emoji 128px）
 tools/make_og.py    共有画像（1200×630）を docs/og/ に作る（Pillow が必要）
 tools/emoji512/     共有画像に使う Noto Emoji 512px とライセンス
@@ -21,9 +20,8 @@ docs/               生成物（GitHub Pages の公開フォルダ）
 
 | URL | 中身 |
 |---|---|
-| / | トップ。曖昧度ランキング、クイズへの入口、次に調べる言葉とリクエスト |
+| / | トップ。曖昧度ランキング、この辞典の読み方 |
 | /words/{slug}/ | 単語ページ。30秒でわかる要点、曖昧メーター、あなたはどの意味派？、意味の地図、アリ？ナシ？、語源、経緯、ズレやすいポイント、観点別の解説、言い換え、関連語、出典 |
-| /quiz/ | アリ？ナシ？曖昧語クイズ。各単語の使用例（examples）からランダムに10問。結果をシェアできる |
 | /about/ | この辞典について |
 
 ## 言葉を追加する
@@ -48,13 +46,13 @@ docs/               生成物（GitHub Pages の公開フォルダ）
 | tldr | 30秒でわかる要点（3つ） |
 | tags | タグ |
 | origin_date / peak / updated | 初出・流行のピーク・最終更新日 |
-| meters | 曖昧度・誤用度・トゲ度・通じる度（1〜5） |
+| meters | 曖昧度・誤用度・通用度（1〜5） |
 | definition | どういう意味？ |
 | usages | 意味の地図と「どの意味派？」の選択肢（type は 原義／拡張／誤用寄り） |
 | etymology | 語源・成り立ち |
 | timeline | 広まった経緯 |
 | misuses | ズレやすいポイント |
-| examples | アリ？ナシ？（verdict は ok／warn／ng）。クイズの問題にもなる |
+| examples | アリ？ナシ？（verdict は ok／warn／ng） |
 | perspectives | いろんな観点から見る（タブで切り替え） |
 | who_where | 誰が・どこで使う？ |
 | paraphrase | 言い換え |

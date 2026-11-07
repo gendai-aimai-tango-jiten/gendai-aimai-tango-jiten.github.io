@@ -128,8 +128,7 @@ def main():
     for w in words:
         word_og(w).convert("RGB").save(OUT / f"{w['slug']}.png", optimize=True)
     site_og(words, ["その言葉、", "ほんとに同じ意味で", "使ってる？"], "流行ってるのに、意味がふわっとしてる言葉の辞典").convert("RGB").save(OUT / "site.png", optimize=True)
-    site_og(words, ["あなたの", "曖昧語力は", "何点？"], "アリ？ナシ？曖昧語クイズ", emoji_main="1f9ea").convert("RGB").save(OUT / "quiz.png", optimize=True)
-    print(f"made {len(words) + 2} images -> {OUT}", file=sys.stderr)
+    print(f"made {len(words) + 1} images -> {OUT}", file=sys.stderr)
 
 
 if __name__ == "__main__":
