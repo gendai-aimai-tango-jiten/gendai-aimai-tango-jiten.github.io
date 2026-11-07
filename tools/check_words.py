@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """data/words/*.json の中身を点検する。
 
-使い方: python3 tools/check_words.py [--links]
+使い方: python3 tools/check_words.py [--links] [--only slug1,slug2]
 --links を付けると、出典URLを実際に開いて確かめる（時間がかかる）。
+--only を付けると、開く出典をその語のものだけにする（項目の点検は全語に行う）。
 問題があれば一覧を出して終了コード1で終わる。
 """
 import json
@@ -62,7 +63,11 @@ def main():
         words[d["word"]] = p.name
 
     if "--links" in sys.argv:
+        only = None
+        if "--only" in sys.argv:
+            only = set(sys.argv[sys.argv.index("--only") + 1].split(","))
         urls = sorted({s["url"] for p in (ROOT / "data" / "words").glob("*.json")
+                       if only is None or p.stem in only
                        for s in json.loads(p.read_text(encoding="utf-8")).get("sources", [])})
         # 自動のアクセスを断るがブラウザでは開けるサイトは、問題として数えない
         cfg = ROOT / "config" / "linkcheck.json"
