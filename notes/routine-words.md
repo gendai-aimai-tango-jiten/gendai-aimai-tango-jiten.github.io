@@ -26,7 +26,7 @@ Claude のデスクトップアプリの定期タスクとして登録する予�
    - `python3 build.py`
    - `.venv/bin/python tools/make_og.py`
 6. data/words/、assets/emoji/、tools/emoji512/、docs/、notes/ だけをコミットして push します。メッセージは「5語を収録（<語1>・<語2>・…）」。push が拒否されたら `git pull --rebase` してから、build.py と make_og.py をやり直して push します。
-7. 公開を確かめます。`gh api repos/gendai-aimai-tango-jiten/gendai-aimai-tango-jiten.github.io/pages/builds/latest --jq .status` が built になるまで待ち（30秒おき、最大10分）、`https://gendai-aimai-tango-jiten.github.io/words/<slug>/` が開けることを curl で確かめます。
+7. 公開を確かめます。今回書いた語の `https://gendai-aimai-tango-jiten.github.io/words/<slug>/` が curl で 200 を返すまで待ちます（30秒おき、最大10分）。`gh api …/pages/builds/latest` の status は、公開できていても errored と出ることがあるので使いません。10分たっても開けなければ、`gh run list -R gendai-aimai-tango-jiten/gendai-aimai-tango-jiten.github.io -L 3` で pages-build-deployment の結果を見て、報告に書きます。
 8. 最後に、次の形で短く報告します。
    - 1行目：「現代曖昧単語辞典に5語を収録しました：<語1>・<語2>・…」
    - それぞれのページのURL（[<語>](https://gendai-aimai-tango-jiten.github.io/words/<slug>/) の形）と、catch を1行ずつ
