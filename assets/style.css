@@ -23,16 +23,6 @@
   --shadow: 0 1px 2px rgba(26, 29, 35, .04), 0 4px 16px rgba(26, 29, 35, .06);
   --shadow-up: 0 2px 4px rgba(26, 29, 35, .06), 0 12px 32px rgba(26, 29, 35, .10);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --base: #14171c; --card: #1d2128; --ink: #eef0f3; --text-body: #c4c9d0; --text-sub: #9aa1aa; --line: #2e333b;
-    --sky: #5aa9e6; --sky-on-tint: #8cc4f0; --chip-bg: #22303f; --on-sky: #0b1a28;
-    --base-yellow: #3a3214; --marker: #b8930f;
-    --ok: #8fd19e; --ok-bg: #1d3323; --warn: #f0c75e; --warn-bg: #3a3214; --ng: #f2968c; --ng-bg: #3d2220;
-    --footer-bg: #0d0f12;
-    --shadow: 0 1px 2px rgba(0,0,0,.3); --shadow-up: 0 8px 24px rgba(0,0,0,.4);
-  }
-}
 :root[data-theme="dark"] {
   --base: #14171c; --card: #1d2128; --ink: #eef0f3; --text-body: #c4c9d0; --text-sub: #9aa1aa; --line: #2e333b;
   --sky: #5aa9e6; --sky-on-tint: #8cc4f0; --chip-bg: #22303f; --on-sky: #0b1a28;
@@ -72,10 +62,6 @@ button { font: inherit; color: inherit; }
 .hd-theme .theme-sun { display: none; }
 :root[data-theme="dark"] .hd-theme .theme-sun { display: block; }
 :root[data-theme="dark"] .hd-theme .theme-moon { display: none; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .hd-theme .theme-sun { display: block; }
-  :root:not([data-theme="light"]) .hd-theme .theme-moon { display: none; }
-}
 .dice-emo { width: 22px; height: 22px; }
 
 /* ボタン */
@@ -176,7 +162,8 @@ button { font: inherit; color: inherit; }
 .whero-word { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(48px, 9vw, 88px); line-height: 1.1; letter-spacing: .02em; }
 .whero-catch { margin: 24px 0 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(20px, 3vw, 28px); line-height: 1.6; }
 .whero-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
-.whero-tags span { font-size: 13px; font-weight: 600; color: var(--sky-on-tint); background: var(--chip-bg); border-radius: 999px; padding: 2px 12px; }
+.whero-tags a { text-decoration: none; display: inline-flex; align-items: center; min-height: 32px; transition: background .15s; font-size: 13px; font-weight: 600; color: var(--sky-on-tint); background: var(--chip-bg); border-radius: 999px; padding: 2px 12px; }
+.whero-tags a:hover { background: color-mix(in srgb, var(--chip-bg) 70%, var(--sky) 30%); }
 
 .wbody { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 48px; margin-top: 36px; }
 .wmain { min-width: 0; }
@@ -426,4 +413,5 @@ button { font: inherit; color: inherit; }
 /* 狭いスマホでは、ヘッダーの「この辞典について」をフッターだけにする */
 @media (max-width: 480px) {
   .hd-nav a[href='/about/'] { display: none; }
+  .whero-tags a { min-height: 40px; }
 }

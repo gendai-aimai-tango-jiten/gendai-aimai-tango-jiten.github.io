@@ -7,6 +7,7 @@ data/words/*.json を読み、docs/ に静的サイトを書き出す。
 """
 import html
 import json
+import urllib.parse
 import shutil
 from pathlib import Path
 
@@ -323,7 +324,7 @@ def word_page(w, words):
 </div>
 </div>
 <p class="whero-catch"><span class="mk">{esc(w["catch"])}</span></p>
-<div class="whero-tags">{"".join(f"<span>{esc(t)}</span>" for t in w["tags"])}</div>
+<div class="whero-tags">{"".join(f'<a href="/?tag={urllib.parse.quote(t)}#words">{esc(t)}</a>' for t in w["tags"])}</div>
 {share_bar(share_text, url, label="この言葉をシェア")}
 </div></header>
 

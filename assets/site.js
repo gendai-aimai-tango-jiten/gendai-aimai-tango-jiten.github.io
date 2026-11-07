@@ -44,10 +44,9 @@
     track('share/' + b.dataset.share + location.pathname, 'シェア：' + b.dataset.share);
   });
 
-  // ダーク表示とライト表示の切り替え（選んだほうをこのブラウザに覚えておく）
-  var darkMQ = window.matchMedia && matchMedia('(prefers-color-scheme: dark)');
+  // ダーク表示とライト表示の切り替え（ふだんはライト。選んだほうをこのブラウザに覚えておく）
   var root = document.documentElement;
-  var current = function () { return root.dataset.theme || (darkMQ && darkMQ.matches ? 'dark' : 'light'); };
+  var current = function () { return root.dataset.theme === 'dark' ? 'dark' : 'light'; };
   var labelTheme = function () {
     var l = current() === 'dark' ? 'ライト表示にする' : 'ダーク表示にする';
     $$('[data-theme-toggle]').forEach(function (b) { b.setAttribute('aria-label', l); b.title = l; });
@@ -61,7 +60,6 @@
       track('theme/' + next, '表示：' + next);
     });
   });
-  if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener('change', labelTheme);
   labelTheme();
 
   // ランダムに1語
@@ -143,6 +141,11 @@
     // 並び替えたあとも、表示する語数を保ったまま出し直す
     $$('.sort-btn').forEach(function (btn) { btn.addEventListener('click', function () { filter(true); }); });
     filter();
+    // 単語ページのタグから来たときは、選ばれたタグが横に隠れないよう見える位置まで送る
+    var onChip = tag && $(".chip.on");
+    if (onChip) { var box = onChip.parentNode; box.scrollLeft += onChip.getBoundingClientRect().left - box.getBoundingClientRect().left - 16; }
+    // 絞り込んで一覧の高さが変わったあとに、一覧の位置へ移る
+    if (location.hash === "#words" && $("#words")) $("#words").scrollIntoView();
   }
 
   // 数の数え上げ
