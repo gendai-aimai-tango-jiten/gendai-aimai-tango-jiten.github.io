@@ -27,7 +27,7 @@ slug は括弧内。済んだものは [x]。
 ## 第3陣（済）
 HSP (hsp)／毒親 (dokuoya)／姑息 (kosoku)／煮詰まる (nitsumaru)／気が置けない (kigaokenai)／チル (chill)／ぴえん (pien)／フレネミー (frenemy)／陰キャ (inkya)／映え (bae)
 
-## 第4陣
+## 第4陣（済）
 マウント (mount)／承認欲求 (shoninyokkyu)／ガスライティング (gaslighting)／檄を飛ばす (gekiwotobasu)／割愛 (katsuai)／失笑 (shissho)／ヤバい (yabai)／エグい (egui)／推し (oshi)／同担拒否 (dotankyohi)
 
 ## 第5陣
