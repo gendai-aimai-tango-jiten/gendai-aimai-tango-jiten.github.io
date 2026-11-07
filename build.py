@@ -64,7 +64,8 @@ def paras(text):
 
 def emoji(cp, cls="emo", size=None):
     s = f' width="{size}" height="{size}"' if size else ""
-    return f'<img class="{cls}" src="/assets/emoji/{cp}.png" alt=""{s} loading="lazy" decoding="async">'
+    lazy = "" if cls in ("logo-emo", "dice-emo", "theme-moon", "theme-sun") else ' loading="lazy"'
+    return f'<img class="{cls}" src="/assets/emoji/{cp}.png" alt=""{s}{lazy} decoding="async">'
 
 
 def meter_bars(meters, big=False):
@@ -127,6 +128,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <meta property="og:image" content="{BASE_URL}{og}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#f7f9fb">
+<script>try{{var t=localStorage.getItem("theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}}catch(e){{}}</script>
 <link rel="icon" href="/assets/emoji/{BRAND_EMOJI}.png">
 <link rel="apple-touch-icon" href="/assets/emoji/{BRAND_EMOJI}.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -143,6 +145,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <a href="/#words">収録語</a>
 <a href="/about/">この辞典について</a>
 <button type="button" class="hd-dice" data-random aria-label="ランダムに1つ見てみる" title="ランダムに1つ見てみる">{emoji("1f3b2", "dice-emo", 22)}</button>
+<button type="button" class="hd-dice hd-theme" data-theme-toggle aria-label="ダーク表示にする" title="ダーク表示にする">{emoji("1f319", "theme-moon", 22)}{emoji("2600", "theme-sun", 22)}</button>
 </nav>
 </div></header>
 <main id="main">
@@ -198,7 +201,7 @@ def index_page(words):
 <p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
 <p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉を、一語ずつ調べました。語源、広まった経緯、意味のズレ、誤用されやすい点までまとめています。</p>
 <div class="hero-cta">
-<div class="stat"><b data-count="{len(words)}">{len(words)}</b><span>収録語</span></div>
+<div class="stat"><b data-count="{len(words)}">{len(words)}</b><span>語収録</span></div>
 <button type="button" class="btn btn-main" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1つ見てみる</button>
 </div>
 </div>

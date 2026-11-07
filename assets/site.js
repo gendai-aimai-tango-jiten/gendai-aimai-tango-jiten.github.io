@@ -44,6 +44,26 @@
     track('share/' + b.dataset.share + location.pathname, 'シェア：' + b.dataset.share);
   });
 
+  // ダーク表示とライト表示の切り替え（選んだほうをこのブラウザに覚えておく）
+  var darkMQ = window.matchMedia && matchMedia('(prefers-color-scheme: dark)');
+  var root = document.documentElement;
+  var current = function () { return root.dataset.theme || (darkMQ && darkMQ.matches ? 'dark' : 'light'); };
+  var labelTheme = function () {
+    var l = current() === 'dark' ? 'ライト表示にする' : 'ダーク表示にする';
+    $$('[data-theme-toggle]').forEach(function (b) { b.setAttribute('aria-label', l); b.title = l; });
+  };
+  $$('[data-theme-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var next = current() === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try { localStorage.setItem('theme', next); } catch (e) { /* 覚えられなくても切り替えはできる */ }
+      labelTheme();
+      track('theme/' + next, '表示：' + next);
+    });
+  });
+  if (darkMQ && darkMQ.addEventListener) darkMQ.addEventListener('change', labelTheme);
+  labelTheme();
+
   // ランダムに1語
   $$('[data-random]').forEach(function (b) {
     b.addEventListener('click', function () {

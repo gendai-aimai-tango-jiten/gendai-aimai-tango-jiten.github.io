@@ -39,6 +39,7 @@
   --base-yellow: #3a3214; --marker: #b8930f;
   --ok: #8fd19e; --ok-bg: #1d3323; --warn: #f0c75e; --warn-bg: #3a3214; --ng: #f2968c; --ng-bg: #3d2220;
   --footer-bg: #0d0f12;
+  --shadow: 0 1px 2px rgba(0,0,0,.3); --shadow-up: 0 8px 24px rgba(0,0,0,.4);
 }
 
 * { box-sizing: border-box; }
@@ -63,10 +64,18 @@ button { font: inherit; color: inherit; }
 .logo { display: flex; align-items: center; gap: 8px; color: var(--ink); text-decoration: none; font-family: var(--font-display); font-weight: 900; font-size: 18px; letter-spacing: .02em; white-space: nowrap; }
 .logo-emo { width: 28px; height: 28px; }
 .hd-nav { display: flex; align-items: center; gap: 4px; }
-.hd-nav a { color: var(--text-body); text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 999px; }
+.hd-nav a { white-space: nowrap; color: var(--text-body); text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 999px; }
 .hd-nav a:hover { background: var(--chip-bg); color: var(--sky-on-tint); }
 .hd-dice { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid var(--line); background: var(--card); border-radius: 50%; cursor: pointer; transition: transform .3s; }
 .hd-dice:hover { transform: rotate(-20deg) scale(1.06); }
+/* 表示の切り替え：ライトでは月、ダークでは太陽を出す */
+.hd-theme .theme-sun { display: none; }
+:root[data-theme="dark"] .hd-theme .theme-sun { display: block; }
+:root[data-theme="dark"] .hd-theme .theme-moon { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .hd-theme .theme-sun { display: block; }
+  :root:not([data-theme="light"]) .hd-theme .theme-moon { display: none; }
+}
 .dice-emo { width: 22px; height: 22px; }
 
 /* ボタン */
@@ -87,9 +96,9 @@ button { font: inherit; color: inherit; }
 .hero-catch em { font-style: normal; color: var(--sky); }
 .hero-lead { max-width: 36em; margin: 18px 0 0; color: var(--text-body); }
 .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 32px; }
-.stat { display: flex; align-items: baseline; gap: 8px; }
+.stat { display: flex; align-items: baseline; gap: 4px; }
 .stat b { font-family: var(--font-display); font-weight: 900; font-size: 44px; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.stat span { font-size: 13px; color: var(--text-sub); font-weight: 600; }
+.stat span { font-size: 15px; color: var(--text-sub); font-weight: 600; }
 .hero-float { position: absolute; inset: 0; pointer-events: none; }
 .fl { position: absolute; width: 120px; height: 120px; opacity: .95; filter: drop-shadow(0 10px 20px rgba(0,0,0,.12)); animation: bob 6s ease-in-out infinite; }
 .fl0 { right: 8%; top: 18%; }
@@ -413,3 +422,8 @@ button { font: inherit; color: inherit; }
 }
 
 .more-btn { margin-top: 24px; min-width: 240px; }
+
+/* 狭いスマホでは、ヘッダーの「この辞典について」をフッターだけにする */
+@media (max-width: 480px) {
+  .hd-nav a[href='/about/'] { display: none; }
+}
