@@ -25,6 +25,13 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 | .github/workflows/check-links.yml | 毎週月曜 7:00 に出典のリンクを点検し、問題があれば Issue を作る |
 | 定期タスク「gendai-aimai-words」 | 3時間おき（毎時7分、0時・3時・6時…）に、notes/queue.md から5語を選んで書き、公開する。2026-11-08 登録、Auto モード。手順は notes/routine-words.md（変えたら定期タスクの中身も直す）。アプリが閉じていると、次に開いたときに動く |
 
+## 計測と公開の設定（2026-11-08 黒田さんが採用）
+
+- アクセス解析は GoatCounter（サイトコード aimaijiten、https://aimaijiten.goatcounter.com）。build.py の GOATCOUNTER。計測用の assets/count.js はコミュニティ図鑑と同じもの。ページの閲覧のほか、シェア（share/…）、ランダム（random）、タグ（tag/…）、検索（search/…、入力が1.5秒止まったとき）、意味派（poll/…）、ほかのサイトへのリンク（sister/…）を数える。
+- Google Search Console の確認タグは build.py の GSC_VERIFY に入れる（空なら出さない）。サイトマップは /sitemap.xml。
+- robots.txt は AI の学習用クローラー（build.py の AI_BOTS）を断り、検索エンジンには開く。図鑑と同じ。
+- フッターと「この辞典について」に運営者（黒田悠介、linktr.ee）と、ほかのサイト（あしたの転機観測所、コミュニティ図鑑）を出す。build.py の OPERATOR と SISTER_SITES。
+
 ## ページ
 
 | URL | 中身 |

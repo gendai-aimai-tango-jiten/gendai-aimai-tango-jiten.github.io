@@ -20,6 +20,15 @@ BASE_URL = "https://gendai-aimai-tango-jiten.github.io"
 HASHTAG = "現代曖昧単語辞典"
 DESC = "流行ってるのに、意味がふわっとしている言葉の辞典。蛙化現象、メロい、ドパガキなどを、語源・意味のズレ・誤用されやすい点から一語ずつ調べました。"
 BRAND_EMOJI = "1f914"
+# アクセス解析（GoatCounter）のサイトコード。https://<コード>.goatcounter.com で数字を見る
+GOATCOUNTER = "aimaijiten"
+# Google Search Console の所有権確認（HTMLタグの content の値）。空なら出さない
+GSC_VERIFY = ""
+OPERATOR = ("黒田悠介", "https://linktr.ee/chlorine0528")
+SISTER_SITES = [("あしたの転機観測所", "https://ashitano-tenki.github.io/", "kansoku"),
+                ("コミュニティ図鑑", "https://community-zukan.github.io/", "zukan")]
+AI_BOTS = ["GPTBot", "ClaudeBot", "anthropic-ai", "Google-Extended", "CCBot", "Applebot-Extended",
+           "Meta-ExternalAgent", "Bytespider", "cohere-training-data-crawler"]
 
 
 def asset_ver(name):
@@ -85,6 +94,20 @@ def share_bar(text, url, label="シェアする", cls=""):
     )
 
 
+def head_extra():
+    out = []
+    if GSC_VERIFY:
+        out.append(f'<meta name="google-site-verification" content="{esc(GSC_VERIFY)}">')
+    if GOATCOUNTER:
+        out.append(f'<script data-goatcounter="https://{GOATCOUNTER}.goatcounter.com/count" async src="/assets/count.js?v={asset_ver("count.js")}"></script>')
+    return "\n".join(out)
+
+
+def sister_links():
+    return "、".join(f'<a href="{u}" rel="noopener" target="_blank" data-goatcounter-click="sister/{k}">{n}</a>'
+                    for n, u, k in SISTER_SITES)
+
+
 def page(title, desc, body, path="/", og="/og/site.png", cls=""):
     url = BASE_URL + path
     full = title if title == SITE else f"{title}｜{SITE}"
@@ -110,6 +133,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css?v={asset_ver("style.css")}">
+{head_extra()}
 </head>
 <body class="{cls}">
 <a class="skip" href="#main">本文へ</a>
@@ -127,6 +151,8 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <footer class="ft"><div class="wrap">
 <p class="ft-logo">{emoji(BRAND_EMOJI, "logo-emo", 24)}{SITE}</p>
 <p>流行っているのに意味がふわっとしている言葉を一語ずつ調べてまとめています。</p>
+<p>運営：<a href="{OPERATOR[1]}" rel="noopener" target="_blank">{OPERATOR[0]}</a></p>
+<p>運営者のほかのサイト：{sister_links()}</p>
 <p class="ft-links"><a href="/">トップ</a><a href="/about/">この辞典について</a></p>
 </div></footer>
 <script src="/assets/site.js?v={asset_ver("site.js")}" defer></script>
@@ -329,7 +355,7 @@ def word_page(w, words):
 
 
 def about_page():
-    body = """
+    body = f"""
 <section class="wrap prose">
 <h1 class="page-title"><span class="mk">この辞典について</span></h1>
 <h2>なぜ作ったか</h2>
@@ -346,6 +372,8 @@ def about_page():
 </ul>
 <h2>曖昧メーター</h2>
 <p>曖昧度・誤用度・通用度を5段階で示しています。調べた資料をもとに編集部が付けた目安で、統計的な指標ではありません。</p>
+<h2>運営者</h2>
+<p><a href="{OPERATOR[1]}" rel="noopener" target="_blank">{OPERATOR[0]}</a>が運営しています。同じ運営者のサイトに{sister_links()}があります。</p>
 <h2>情報の扱い</h2>
 <p>流行語の初出や語源は、確定できないことがよくあります。説が複数あるものは複数のまま書き、確認できなかったことは「〜とされる」と書いています。各ページの末尾に出典を載せていますので、あわせてご確認ください。</p>
 </section>
@@ -392,7 +420,9 @@ def main():
     urls = ["/", "/about/"] + [f"/words/{w['slug']}/" for w in words]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{BASE_URL}{u}</loc></url>\n" for u in urls) + "</urlset>\n")
-    write("robots.txt", f"User-agent: *\nAllow: /\nSitemap: {BASE_URL}/sitemap.xml\n")
+    # AIの学習用クローラーは断り、検索エンジンには開く（コミュニティ図鑑と同じ）
+    robots = "".join(f"User-agent: {b}\nDisallow: /\n\n" for b in AI_BOTS)
+    write("robots.txt", robots + f"User-agent: *\nAllow: /\n\nSitemap: {BASE_URL}/sitemap.xml\n")
     print(f"built {len(words)} words -> {OUT}")
 
 

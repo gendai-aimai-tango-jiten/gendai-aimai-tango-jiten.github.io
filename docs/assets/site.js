@@ -5,6 +5,13 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // アクセス解析（GoatCounter）に出来事を1件送る。読み込まれていなければ何もしない
+  function track(path, title) {
+    try {
+      if (window.goatcounter && goatcounter.count) goatcounter.count({ path: path, title: title || path, event: true });
+    } catch (e) { /* 数えられなくても画面は止めない */ }
+  }
+
   function toast(msg) {
     var t = $('.toast');
     if (!t) { t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
@@ -34,11 +41,13 @@
     if (!b) return;
     var box = b.closest('.share');
     share(b.dataset.share, box.dataset.text, box.dataset.url);
+    track('share/' + b.dataset.share + location.pathname, 'シェア：' + b.dataset.share);
   });
 
   // ランダムに1語
   $$('[data-random]').forEach(function (b) {
     b.addEventListener('click', function () {
+      track('random', 'ランダムに1つ見てみる');
       fetch('/words.json').then(function (r) { return r.json(); }).then(function (list) {
         var here = location.pathname;
         var c = list.filter(function (w) { return here.indexOf('/words/' + w.slug + '/') === -1; });
@@ -93,6 +102,7 @@
     $$('.chip').forEach(function (b) {
       b.addEventListener('click', function () {
         tag = b.dataset.tag;
+        if (tag) track('tag/' + tag, 'タグ：' + tag);
         var url = new URL(location.href);
         if (tag) url.searchParams.set('tag', tag); else url.searchParams.delete('tag');
         history.replaceState(null, '', url);
@@ -100,6 +110,15 @@
       });
     });
     q.addEventListener('input', filter);
+    // 入力が1.5秒止まったら、検索された言葉として数える
+    var qTimer;
+    q.addEventListener('input', function () {
+      clearTimeout(qTimer);
+      qTimer = setTimeout(function () {
+        var v = q.value.trim();
+        if (v.length >= 2) track('search/' + v, '検索：' + v);
+      }, 1500);
+    });
     if (more) more.addEventListener('click', function () { limit += PAGE; filter(true); });
     // 並び替えたあとも、表示する語数を保ったまま出し直す
     $$('.sort-btn').forEach(function (btn) { btn.addEventListener('click', function () { filter(true); }); });
@@ -150,6 +169,7 @@
       b.addEventListener('click', function () {
         $$('.poll-opt', poll).forEach(function (x) { x.classList.toggle('picked', x === b); x.setAttribute('aria-pressed', x === b); });
         var m = POLL_MSG[b.dataset.type];
+        track('poll/' + b.dataset.type + location.pathname, '意味派：' + b.dataset.type);
         var word = poll.dataset.word;
         var text = b.dataset.type === 'none'
           ? '「' + word + '」、知らなかった。どういう意味か調べてみた'
