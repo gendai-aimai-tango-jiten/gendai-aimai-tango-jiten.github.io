@@ -45,5 +45,5 @@ HSP (hsp)／毒親 (dokuoya)／姑息 (kosoku)／煮詰まる (nitsumaru)／気�
 ## 第9陣（済）
 生きづらさ (ikizurasa)／地頭 (jiatama)／コスパ (kosupa)／的を射る (matowoiru)／汚名返上 (omeihenjo)／一姫二太郎 (ichihimenitaro)／号泣 (gokyu)／爆笑 (bakusho)／盛る (moru)／刺さる (sasaru)
 
-## 第10陣
-しんどい (shindoi)／情緒 (jocho)／それな (sorena)／構文 (kobun)／上振れ (uwabure)／秒で (byode)／神 (kami)
+## 第10陣（済）※情緒・上振れ・秒では出典が見つからず、横転・インプレ・きまずに差し替え
+しんどい (shindoi)／それな (sorena)／構文 (kobun)／神 (kami)／横転 (oten)／インプレ (impre)／きまず (kimazu)
