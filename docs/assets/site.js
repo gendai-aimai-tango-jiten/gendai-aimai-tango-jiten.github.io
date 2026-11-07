@@ -67,7 +67,7 @@
   // ふわっと出す
   // 画面の下にあるものだけ隠し、スクロールで位置に来たら出す
   if (!reduce) {
-    var fades = $$('.wc, .panel, .umap-item, .ex, .mis');
+    var fades = $$('.wc, .panel, .umap-item, .mis');
     fades.forEach(function (el) { if (el.getBoundingClientRect().top > innerHeight) el.classList.add('fade'); });
     var check = function () {
       fades.forEach(function (el) {
@@ -104,18 +104,6 @@
         sh.innerHTML = '<span class="share-label">結果をシェア</span>' + (tpl ? $$('.sbtn', tpl).map(function (x) { return x.outerHTML; }).join('') : '');
         res.appendChild(sh);
         res.hidden = false;
-      });
-    });
-  });
-
-  // 使用例のアリ・ナシ
-  $$('.ex').forEach(function (li) {
-    $$('.ex-btn', li).forEach(function (b) {
-      b.addEventListener('click', function () {
-        if (li.classList.contains('done')) return;
-        li.classList.add('done', b.dataset.v === li.dataset.answer ? 'right' : 'wrong');
-        b.classList.add('picked');
-        $('.ex-ans', li).hidden = false;
       });
     });
   });

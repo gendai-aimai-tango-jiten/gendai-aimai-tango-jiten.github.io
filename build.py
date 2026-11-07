@@ -31,7 +31,6 @@ USAGE = {
     "拡張": ("u-extend", "広がった使い方"),
     "誤用寄り": ("u-misuse", "出典から離れた使い方"),
 }
-VERDICT = {"ok": ("アリ", "v-ok"), "warn": ("ビミョー", "v-warn"), "ng": ("ナシ", "v-ng")}
 
 
 def esc(s):
@@ -210,23 +209,14 @@ def word_page(w, words):
 </div>"""
     add("poll", "1f914", "あなたはどの意味派？", poll, "wsec-poll")
 
-    # 意味の地図
+    # 意味の変遷
     items = "".join(
         f'<li class="umap-item {USAGE[u["type"]][0]}"><span class="umap-tag">{esc(u["type"])}<small>{USAGE[u["type"]][1]}</small></span>'
         f'<h3>{esc(u["label"])}</h3>{paras(u["desc"])}</li>'
         for u in w["usages"]
     )
-    add("map", "1f50d", "意味の地図", f'<p class="wsec-lead">いま、この言葉はこれだけの意味で使われています。上ほど本来の意味に近く、下ほど出典から離れます。</p><ol class="umap">{items}</ol>')
+    add("map", "1f50d", "意味の変遷", f'<p class="wsec-lead">もともとの意味から、いまの使われ方までを順に並べています。下にいくほど出典から離れます。</p><ol class="umap">{items}</ol>')
 
-    # アリ？ナシ？
-    ex = "".join(
-        f'<li class="ex" data-answer="{e["verdict"]}"><p class="ex-text">「{esc(e["text"])}」</p>'
-        f'<div class="ex-btns">' + "".join(
-            f'<button type="button" class="ex-btn {VERDICT[k][1]}" data-v="{k}">{VERDICT[k][0]}</button>' for k in ("ok", "warn", "ng")
-        ) + f'</div><div class="ex-ans" hidden><b class="{VERDICT[e["verdict"]][1]}">{VERDICT[e["verdict"]][0]}</b><p>{esc(e["note"])}</p></div></li>'
-        for e in w["examples"]
-    )
-    add("examples", "1f9ea", "この使い方、アリ？ナシ？", f'<p class="wsec-lead">押すと答えと解説が出ます。</p><ol class="exs">{ex}</ol>')
 
     add("etymology", "1f4d6", "語源・成り立ち", paras(w["etymology"]))
 
@@ -234,7 +224,7 @@ def word_page(w, words):
     add("timeline", "1f4e3", "広まった経緯", f'<ol class="tl">{tl}</ol>')
 
     mis = "".join(f'<div class="mis"><h3>{esc(m["title"])}</h3>{paras(m["body"])}</div>' for m in w["misuses"])
-    add("misuses", "1f440", "ズレやすいポイント", f'<div class="miss">{mis}</div>')
+    add("misuses", "1f440", "ズレのポイント", f'<div class="miss">{mis}</div>')
 
     tabs = "".join(
         f'<button type="button" role="tab" class="ptab{" on" if i == 0 else ""}" aria-selected="{"true" if i == 0 else "false"}" data-i="{i}">{esc(p["label"].split(" ──")[0])}</button>'
@@ -244,12 +234,10 @@ def word_page(w, words):
         f'<div class="ppanel" role="tabpanel" data-i="{i}"{"" if i == 0 else " hidden"}><h3>{esc(p["label"])}</h3>{paras(p["body"])}</div>'
         for i, p in enumerate(w["perspectives"])
     )
-    add("perspectives", "1f4ad", "いろんな観点から見る", f'<div class="ptabs" role="tablist">{tabs}</div><div class="ppanels">{panels}</div>')
+    add("perspectives", "1f4ad", "多様な観点", f'<div class="ptabs" role="tablist">{tabs}</div><div class="ppanels">{panels}</div>')
 
-    add("who", "1f4ac", "誰が・どこで使う？", paras(w["who_where"]))
+    add("who", "1f4ac", "使用シーン", paras(w["who_where"]))
 
-    para = "".join(f'<li><span>{esc(p["context"])}</span><b>{esc(p["text"])}</b></li>' for p in w["paraphrase"])
-    add("paraphrase", "270f", "言い換えるなら", f'<ul class="paras">{para}</ul>')
 
     rel = []
     for r in w["related"]:
@@ -260,8 +248,7 @@ def word_page(w, words):
     add("related", "2728", "関連語", f'<ul class="rels">{"".join(rel)}</ul>')
 
     src = "".join(
-        f'<li><a href="{esc(s["url"])}" rel="noopener" target="_blank">{esc(s["title"])}</a>'
-        + (f'<small>{esc(s["note"])}</small>' if s.get("note") else "") + "</li>"
+        f'<li><a href="{esc(s["url"])}" rel="noopener" target="_blank">{esc(s["title"])}</a></li>'
         for s in w["sources"]
     )
     add("sources", "1f4dd", "出典・参考", f'<ol class="srcs">{src}</ol>')
@@ -325,11 +312,10 @@ def about_page():
 <ul>
 <li>30秒でわかる要点と、曖昧メーター</li>
 <li>あなたはどの意味派？：自分の使い方を選ぶと、その意味の位置づけが分かります</li>
-<li>意味の地図：もともとの意味、広がった使い方、出典から離れた使い方</li>
-<li>この使い方、アリ？ナシ？：よくある使用例の判定</li>
-<li>語源、広まった経緯、ズレやすいポイント</li>
-<li>いろんな観点から見る：心理学、脳科学、言語学、世代論、海外との比較など</li>
-<li>言い換え、関連語、出典</li>
+<li>意味の変遷：もともとの意味、広がった使い方、出典から離れた使い方</li>
+<li>語源、広まった経緯、ズレのポイント</li>
+<li>多様な観点：心理学、脳科学、言語学、世代論、海外との比較など</li>
+<li>使用シーン、関連語、出典</li>
 </ul>
 <h2>曖昧メーター</h2>
 <p>曖昧度・誤用度・通用度を5段階で示しています。調べた資料をもとに編集部が付けた目安で、統計的な指標ではありません。</p>
