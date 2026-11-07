@@ -24,7 +24,7 @@ slug は括弧内。済んだものは [x]。
 ## 第2陣（済）
 蛇化現象 (hebikagensho)／沼る (numaru)／尊い (toutoi)／解像度 (kaizodo)／心理的安全性 (shinritekianzensei)／敷居が高い (shikiigatakai)／なし崩し (nashikuzushi)／タイパ (taipa)／匂わせ (niowase)／量産型 (ryosangata)
 
-## 第3陣
+## 第3陣（済）
 HSP (hsp)／毒親 (dokuoya)／姑息 (kosoku)／煮詰まる (nitsumaru)／気が置けない (kigaokenai)／チル (chill)／ぴえん (pien)／フレネミー (frenemy)／陰キャ (inkya)／映え (bae)
 
 ## 第4陣
