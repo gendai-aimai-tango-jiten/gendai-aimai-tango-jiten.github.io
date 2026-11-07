@@ -79,7 +79,7 @@ button { font: inherit; color: inherit; }
 .btn-xl { min-height: 58px; font-size: 18px; padding: 0 40px; }
 
 /* ヒーロー */
-.hero { position: relative; overflow: hidden; padding: 64px 0 56px; background: linear-gradient(180deg, var(--card) 0%, var(--base) 100%); border-bottom: 1px solid var(--line); }
+.hero { position: relative; overflow: hidden; padding: 64px 0 56px; background: linear-gradient(180deg, var(--card) 0%, var(--base) 100%); }
 .hero-in { position: relative; z-index: 1; }
 .hero-kicker { margin: 0 0 10px; font-size: 14px; font-weight: 700; color: var(--sky-on-tint); }
 .hero-title { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(34px, 6vw, 56px); line-height: 1.25; letter-spacing: .02em; }
@@ -159,7 +159,7 @@ button { font: inherit; color: inherit; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 /* 単語ページ */
-.whero { background: linear-gradient(180deg, var(--card), var(--base)); border-bottom: 1px solid var(--line); padding: 28px 0 36px; }
+.whero { background: linear-gradient(180deg, var(--card), var(--base)); padding: 28px 0 36px; }
 .crumb { margin: 0 0 24px; font-size: 13px; color: var(--text-sub); display: flex; gap: 8px; }
 .crumb a { color: var(--text-sub); }
 .whero-main { display: flex; align-items: center; gap: 24px; }
