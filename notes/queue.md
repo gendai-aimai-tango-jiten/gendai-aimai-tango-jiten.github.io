@@ -30,8 +30,8 @@ HSP (hsp)／毒親 (dokuoya)／姑息 (kosoku)／煮詰まる (nitsumaru)／気�
 ## 第4陣（済）
 マウント (mount)／承認欲求 (shoninyokkyu)／ガスライティング (gaslighting)／檄を飛ばす (gekiwotobasu)／割愛 (katsuai)／失笑 (shissho)／ヤバい (yabai)／エグい (egui)／推し (oshi)／同担拒否 (dotankyohi)
 
-## 第5陣
-リスキリング (reskilling)／パーパス (purpose)／ウェルビーイング (wellbeing)／破天荒 (hatenko)／他力本願 (tarikihongan)／情けは人のためならず (nasakewa)／ガチ恋 (gachikoi)／優勝 (yusho)／しか勝たん (shikakatan)／草 (kusa)
+## 第5陣（済）※優勝は出典が見つからず、よきに差し替え
+リスキリング (reskilling)／パーパス (purpose)／ウェルビーイング (wellbeing)／破天荒 (hatenko)／他力本願 (tarikihongan)／情けは人のためならず (nasakewa)／ガチ恋 (gachikoi)／よき (yoki)／しか勝たん (shikakatan)／草 (kusa)
 
 ## 第6陣
 静かな退職 (shizukanataishoku)／アンコンシャス・バイアス (unconsciousbias)／レジリエンス (resilience)／憮然 (buzen)／須らく (subekaraku)／琴線に触れる (kinsen)／意識高い系 (ishikitakaikei)／詰んだ (tsunda)／バズる (bazuru)／炎上 (enjo)

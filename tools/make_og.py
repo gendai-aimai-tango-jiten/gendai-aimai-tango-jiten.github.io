@@ -79,8 +79,11 @@ def word_og(w):
     d.ellipse([820, 70, 1140, 390], fill=BASE_YELLOW)
     paste_emoji(img, w["emoji"], (870, 120), 220)
     d.text((70, 70), w["reading"], font=font(FONT_BOLD, 30), fill=SUB)
-    size = 132 if len(w["word"]) <= 4 else 110
-    d.text((64, 108), w["word"], font=font(FONT_HEAVY, size), fill=INK)
+    # 見出し語は右の円にかからない幅（720px）に収まるまで小さくする
+    size = 132
+    while size > 56 and d.textlength(w["word"], font=font(FONT_HEAVY, size)) > 720:
+        size -= 4
+    d.text((64, 108 + (132 - size) // 2), w["word"], font=font(FONT_HEAVY, size), fill=INK)
     # 句点ごとに行を分け、収まるまで文字を小さくする。収まらなければ均等に折り返す
     sents = [s + "。" for s in w["catch"].split("。") if s]
     size = 42
