@@ -165,10 +165,69 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 """
 
 
-def word_card(w):
+# ---- 並び順 ----
+# 推奨度順：内容の充実（本文の量）・今時度・曖昧度を合わせた点数で並べ、
+#   若者言葉・ネット／ビジネス・心理／誤用の定番 が偏らないよう順番に混ぜる
+# 今時度順：流行した時期が新しい順
+THIS_YEAR = 2026
+RICH_KEYS = ["definition", "usages", "etymology", "timeline", "misuses", "perspectives", "who_where"]
+
+
+def richness(w):
+    return len(json.dumps({k: w.get(k) for k in RICH_KEYS}, ensure_ascii=False))
+
+
+def nowness(w):
+    """流行した時期を年の数にする。新しいほど大きい。年が書かれていない昔からの誤用は古い扱い"""
+    import re
+    peak = w.get("peak", "")
+    years = [int(y) for y in re.findall(r"(?<!\d)((?:19|20)\d\d)(?!\d)(?!年代)", peak)]
+    for dec, rest in re.findall(r"((?:19|20)\d0)年代(後半|前半)?", peak):
+        years.append(int(dec) + (8 if rest == "後半" else 2 if rest == "前半" else 5))
+    years += [int(t[:4]) for t in w["tags"] if t.endswith("年流行") and t[:4].isdigit()]
+    if not years:
+        return 1990.0
+    y = max(years)
+    if "〜" in peak and not re.search(r"〜\s*(?:19|20)\d\d", peak):
+        y += 2  # 「〜」で終わるものは今も使われている
+    return float(min(y, THIS_YEAR))
+
+
+def word_group(w):
+    if "誤用の定番" in w["tags"]:
+        return 2
+    if "ビジネス" in w["tags"] or "心理学由来" in w["tags"]:
+        return 1
+    return 0
+
+
+def recommend_order(words):
+    rich = {w["slug"]: richness(w) for w in words}
+    now = {w["slug"]: nowness(w) for w in words}
+
+    def norm(d, x):
+        lo, hi = min(d.values()), max(d.values())
+        return (d[x] - lo) / (hi - lo) if hi > lo else 0
+
+    def score(w):
+        s = w["slug"]
+        return 0.4 * norm(rich, s) + 0.35 * norm(now, s) + 0.25 * (w["meters"].get("曖昧度", 1) - 1) / 4
+
+    groups = [sorted([w for w in words if word_group(w) == g], key=lambda w: (-score(w), w["reading"]))
+              for g in range(3)]
+    out = []
+    while any(groups):
+        for g in groups:
+            if g:
+                out.append(g.pop(0))
+    return out
+
+
+def word_card(w, rec=0):
     amb = w["meters"].get("曖昧度", 0)
     return (
-        f'<a class="wc" href="/words/{w["slug"]}/" data-added="{esc(w["added"])}" data-amb="{amb}" '
+        f'<a class="wc" href="/words/{w["slug"]}/" data-rec="{rec}" data-now="{nowness(w):.0f}" data-rich="{richness(w)}" '
+        f'data-added="{esc(w["added"])}" data-amb="{amb}" '
         f'data-mis="{w["meters"].get("誤用度", 0)}" data-kana="{esc(w["reading"])}" '
         f'data-tags="{esc("|".join(w["tags"]))}" data-search="{esc(w["word"] + w["reading"] + w["catch"] + w["oneliner"] + "".join(w["tags"]))}">'
         f'<span class="wc-circle">{emoji(w["emoji"], "wc-emo")}</span>'
@@ -182,9 +241,9 @@ def word_card(w):
 
 
 def index_page(words):
-    # 既定は新着順（収録日が新しい順。同じ日なら曖昧度の高い順）
-    ordered = sorted(words, key=lambda w: (w["added"], w["meters"].get("曖昧度", 0)), reverse=True)
-    cards = "".join(word_card(w) for w in ordered)
+    # 既定は推奨度順（recommend_order を参照）
+    ordered = recommend_order(words)
+    cards = "".join(word_card(w, i) for i, w in enumerate(ordered))
     # ヒーローの飾りは最初に収録した3語の絵文字
     hero_words = [w for s in ("kaerukagensho", "dopagaki", "meroi") for w in words if w["slug"] == s][:3]
     tag_count = {}
@@ -212,7 +271,8 @@ def index_page(words):
 <section class="wrap sec-block" id="words">
 <div class="block-head list-head"><h2 class="block-title"><span class="mk">収録語</span></h2>
 <div class="sorter" role="group" aria-label="並び順">
-<button type="button" class="sort-btn on" data-sort="added" aria-pressed="true">新着順</button>
+<button type="button" class="sort-btn on" data-sort="rec" aria-pressed="true">推奨度順</button>
+<button type="button" class="sort-btn" data-sort="now" aria-pressed="false">今時度順</button>
 <button type="button" class="sort-btn" data-sort="amb" aria-pressed="false">曖昧度順</button>
 <button type="button" class="sort-btn" data-sort="kana" aria-pressed="false">五十音順</button>
 </div></div>

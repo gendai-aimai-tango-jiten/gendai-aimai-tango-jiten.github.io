@@ -363,7 +363,7 @@ button { font: inherit; color: inherit; }
   .hd-nav a { min-height: 44px; display: inline-flex; align-items: center; }
   .sort-btn, .chip { min-height: 44px; }
   .sorter { width: 100%; }
-  .sort-btn { flex: 1; padding: 0 8px; }
+  .sort-btn { flex: 1; padding: 0 4px; font-size: 13px; white-space: nowrap; min-width: 0; }
 
   /* トップ */
   .hero { padding: 32px 0 28px; }

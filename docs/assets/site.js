@@ -79,7 +79,8 @@
   var list = $('#wordlist');
   if (list) {
     var SORTS = {
-      added: function (a, b) { return b.dataset.added.localeCompare(a.dataset.added) || b.dataset.amb - a.dataset.amb; },
+      rec: function (a, b) { return a.dataset.rec - b.dataset.rec; },
+      now: function (a, b) { return b.dataset.now - a.dataset.now || b.dataset.rich - a.dataset.rich; },
       amb: function (a, b) { return b.dataset.amb - a.dataset.amb || b.dataset.mis - a.dataset.mis; },
       kana: function (a, b) { return a.dataset.kana.localeCompare(b.dataset.kana, 'ja'); }
     };
