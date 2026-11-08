@@ -23,12 +23,14 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 | tools/fetch_emoji.py | 語と曖昧ノートの emoji に使う Noto Emoji の画像（128px と 512px）を取ってくる |
 | tools/check_words.py | 語のデータの点検。`--links` で出典のURLも開く（`--only slug1,slug2` でその語の出典だけ）。自動のアクセスを断るサイトは config/linkcheck.json の refusing_hosts に入れて除外する。確かな情報源（config/trusted_sources.json）がない語を知らせ、`--strict-sources` で問題として数える。曖昧ノートが収録済みの語だけを使っているかも見る |
 | tools/make_og.py | 共有画像を作る。語ごと（docs/og/<slug>.png）、意味派の結果（docs/og/r/、名前が変わったものだけ作り直す）、曖昧ノート（docs/og/notes/） |
-| tools/fetch_poll.py | 「あなたはどの意味派？」の回答数を GoatCounter の API から集めて data/poll.json に書く。GitHub の Secret「GOATCOUNTER_TOKEN」が要る |
-| .github/workflows/poll.yml | 毎週月曜 6:00 に fetch_poll.py を動かし、変わっていればサイトを作り直して push する |
+| tools/fetch_stats.py | GoatCounter の API から辞典の数字を集め、data/poll.json（意味派の回答数）と data/stats.json（語ごとの閲覧数・シェア数、全体の閲覧数、流入元の上位、収録していない検索語）に書く。GitHub の Secret「GOATCOUNTER_TOKEN」が要る。トークンはこの Secret にだけ置く（黒田さんの判断で、Mac のキーチェーンには置かない）。リポジトリは公開なので、書くのはまとめた数字だけ。検索語は2回以上・20字以内で、メールアドレスや長い数字を含まないものに絞る |
+| .github/workflows/stats.yml | 毎週月曜 6:00 に fetch_stats.py を動かし、変わっていればサイトを作り直して push する |
+| tools/pick_share.py | 次にシェアする語の候補を出す。推奨度と直近7日の読まれ方を半分ずつ |
 | .github/workflows/check-links.yml | 毎週月曜 7:00 に出典のリンクを点検し、問題があれば Issue を作る |
 | 定期タスク「gendai-aimai-words」 | 1日2回（9:07と21:07ごろ）に、notes/queue.md から3語を選んで書き、公開する（2026-11-08 に3時間おき・5語から変更）。2026-11-08 登録、Auto モード。手順は notes/routine-words.md（変えたら定期タスクの中身も直す）。アプリが閉じていると、次に開いたときに動く |
 | 定期タスク「gendai-aimai-note」 | 毎日10:20ごろに（2026-11-08 に毎週火曜から変更）、notes/note-ideas.md から1つ選んで曖昧ノートを書き、公開する。2026-11-08 登録（権限の設定は保存されなかったので、最初の実行で確認が出ることがある） |
-| 定期タスク「gendai-aimai-share」 | 毎週水曜9:00ごろに、推奨度順でまだシェアしていない語を1つ選び、notes/share-log.md に記録して、Asana のタスク「現代曖昧単語辞典をシェア」の説明欄の一番上に書く。黒田さんは翌日の木曜にシェアする。2026-11-08 登録、Auto モード |
+| 定期タスク「gendai-aimai-report」 | 毎週月曜8:30ごろに、data/stats.json と data/poll.json と1週間の更新をまとめて黒田さんに報告する。ファイルは変えない |
+| 定期タスク「gendai-aimai-share」 | 毎週水曜9:00ごろに、tools/pick_share.py でまだシェアしていない語を1つ選び、notes/share-log.md に記録して、Asana のタスク「現代曖昧単語辞典をシェア」の説明欄の一番上に書く。黒田さんは翌日の木曜にシェアする。2026-11-08 登録、Auto モード |
 
 ## 計測と公開の設定（2026-11-08 黒田さんが採用）
 
@@ -59,6 +61,6 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 - 出典の下に補足文を付けない。GitHub のリンクや Issue の案内を画面に出さない。
 - メーターは曖昧度・誤用度・通用度の3つ。説明文は build.py の METERS。
 - 見た目を大きく変えるときは、先に黒田さんに見せて選んでもらう。
-- 一覧の並びは推奨度順が基本（2026-11-08）。推奨度は本文の量・今時度・曖昧度の点数で、若者言葉・ネット／ビジネス・心理／誤用の定番を順番に混ぜる。今時度は流行した時期（peak と「〇〇年流行」タグ）の新しさ。計算は build.py の recommend_order と nowness。
+- 一覧の並びは推奨度順が基本（2026-11-08）。推奨度は本文の量（35%）・今時度（30%）・曖昧度（20%）・人気（15%、data/stats.json の累計閲覧数とシェア数）の点数で、若者言葉・ネット／ビジネス・心理／誤用の定番を順番に混ぜる。今時度は流行した時期（peak と「〇〇年流行」タグ）の新しさ。計算は build.py の recommend_scores・recommend_order・nowness・popularity。
 - 表示はふだんライト。ダークはヘッダーのボタンで選んだ人だけ（端末の設定には合わせない、2026-11-08）。
 - 黒田さんへの返答・報告は日本語で。日本語の文章は yomiyasu スキルの方針で書く。

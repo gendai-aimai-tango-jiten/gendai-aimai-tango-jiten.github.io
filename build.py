@@ -282,8 +282,9 @@ def page(title, desc, body, path="/", og="/og/site.png", cls="", ld=None):
 
 
 # ---- 並び順 ----
-# 推奨度順：内容の充実（本文の量）・今時度・曖昧度を合わせた点数で並べ、
+# 推奨度順：内容の充実（本文の量）・今時度・曖昧度・人気（閲覧数とシェア数）を合わせた点数で並べ、
 #   若者言葉・ネット／ビジネス・心理／誤用の定番 が偏らないよう順番に混ぜる
+#   人気は data/stats.json（tools/fetch_stats.py が週1回作る）。まだ数字がなければ全語0として扱う
 # 今時度順：流行した時期が新しい順
 THIS_YEAR = 2026
 RICH_KEYS = ["definition", "usages", "etymology", "timeline", "misuses", "perspectives", "who_where"]
@@ -317,17 +318,35 @@ def word_group(w):
     return 0
 
 
-def recommend_order(words):
+STATS_FILE = ROOT / "data" / "stats.json"
+STATS = json.loads(STATS_FILE.read_text(encoding="utf-8")) if STATS_FILE.exists() else {}
+
+
+def popularity(w):
+    """人気：累計の閲覧数と、シェア数（1回を閲覧5回分と数える）。差が大きくなりすぎないよう対数にする"""
+    import math
+    s = STATS.get("words", {}).get(w["slug"], {})
+    return math.log1p(s.get("viewsAll", 0) + 5 * s.get("sharesAll", 0))
+
+
+def recommend_scores(words):
     rich = {w["slug"]: richness(w) for w in words}
     now = {w["slug"]: nowness(w) for w in words}
+    pop = {w["slug"]: popularity(w) for w in words}
 
     def norm(d, x):
         lo, hi = min(d.values()), max(d.values())
         return (d[x] - lo) / (hi - lo) if hi > lo else 0
 
+    return {w["slug"]: 0.35 * norm(rich, w["slug"]) + 0.3 * norm(now, w["slug"])
+            + 0.2 * (w["meters"].get("曖昧度", 1) - 1) / 4 + 0.15 * norm(pop, w["slug"]) for w in words}
+
+
+def recommend_order(words):
+    scores = recommend_scores(words)
+
     def score(w):
-        s = w["slug"]
-        return 0.4 * norm(rich, s) + 0.35 * norm(now, s) + 0.25 * (w["meters"].get("曖昧度", 1) - 1) / 4
+        return scores[w["slug"]]
 
     groups = [sorted([w for w in words if word_group(w) == g], key=lambda w: (-score(w), w["reading"]))
               for g in range(3)]

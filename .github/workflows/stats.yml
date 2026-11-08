@@ -1,6 +1,6 @@
-name: 意味派の集計
+name: 辞典の数字の集計
 
-# 毎週月曜 6:00（日本時間）に「あなたはどの意味派？」の回答数を GoatCounter から集め、サイトを作り直して公開する
+# 毎週月曜 6:00（日本時間）に GoatCounter から辞典の数字を集め（意味派の回答数、語ごとの閲覧数・シェア数など）、サイトを作り直して公開する
 on:
   schedule:
     - cron: "0 21 * * 0"
@@ -10,11 +10,11 @@ permissions:
   contents: write
 
 concurrency:
-  group: poll
+  group: stats
   cancel-in-progress: false
 
 jobs:
-  poll:
+  stats:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -24,20 +24,20 @@ jobs:
       - name: 集計
         env:
           GOATCOUNTER_TOKEN: ${{ secrets.GOATCOUNTER_TOKEN }}
-        run: python3 tools/fetch_poll.py
+        run: python3 tools/fetch_stats.py
       - name: 作り直して公開
         run: |
           git config user.name "ashitano-tenki"
           git config user.email "346352130+ashitano-tenki@users.noreply.github.com"
-          if git diff --quiet data/poll.json; then
+          if git diff --quiet data/poll.json data/stats.json && [ -f data/stats.json ] && git ls-files --error-unmatch data/stats.json >/dev/null 2>&1; then
             echo "集計に変わりがありません"
             exit 0
           fi
           python3 build.py
-          git add data/poll.json docs
-          git commit -m "意味派の集計を更新"
+          git add data/poll.json data/stats.json docs
+          git commit -m "辞典の数字を更新"
           for i in 1 2 3; do
-            git pull --rebase origin main && python3 build.py && git add docs && { git diff --cached --quiet || git commit -m "意味派の集計を更新（作り直し）"; } && git push origin main && exit 0
+            git pull --rebase origin main && python3 build.py && git add docs && { git diff --cached --quiet || git commit -m "辞典の数字を更新（作り直し）"; } && git push origin main && exit 0
             sleep 10
           done
           exit 1
