@@ -270,6 +270,10 @@ button { font: inherit; color: inherit; }
 .prose p, .prose li { color: var(--text-body); }
 .nf-emo { margin: 24px 0 0; }
 
+/* 誤りを知らせるリンク（出典の下） */
+.fixlink { margin: 16px 0 0; font-size: 13px; }
+.fixlink a { color: var(--text-sub); }
+
 /* フッター */
 .ft { margin-top: 96px; background: var(--footer-bg); color: var(--footer-text); padding: 40px 0 48px; font-size: 14px; }
 .ft p { margin: 6px 0; max-width: 40em; }

@@ -26,6 +26,15 @@ GOATCOUNTER = "aimaijiten"
 # Google Search Console の所有権確認（HTMLタグの content の値）。空なら出さない
 GSC_VERIFY = "QfZTihD29VHshRbTilTzPcex8edTvSmGA6GJXm81WHs"
 OPERATOR = ("黒田悠介", "https://linktr.ee/chlorine0528")
+# 内容の訂正・ご意見を受け付ける Google フォーム（黒田さんのアカウント、2026-11-08 作成）
+FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnE0Q4HPRIwQ5Uo5jNj8VHvNpvdmpQRzW1MjBb_DQPVIDrkA/viewform"
+FORM_ENTRY_TARGET = "866526369"  # 「対象の言葉、またはページのURL」の欄
+
+
+def form_link(target=""):
+    if not target:
+        return FORM_URL
+    return FORM_URL + "?usp=pp_url&entry." + FORM_ENTRY_TARGET + "=" + urllib.parse.quote(target)
 SISTER_SITES = [("あしたの転機観測所", "https://ashitano-tenki.github.io/", "kansoku"),
                 ("コミュニティ図鑑", "https://community-zukan.github.io/", "zukan")]
 AI_BOTS = ["GPTBot", "ClaudeBot", "anthropic-ai", "Google-Extended", "CCBot", "Applebot-Extended",
@@ -157,6 +166,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <p>流行っているのに意味がふわっとしている言葉を一語ずつ調べてまとめています。</p>
 <p>運営：<a href="{OPERATOR[1]}" rel="noopener" target="_blank">{OPERATOR[0]}</a></p>
 <p>運営者のほかのサイト：{sister_links()}</p>
+<p><a href="{form_link()}" rel="noopener" target="_blank">内容の訂正・ご意見</a></p>
 <p class="ft-links"><a href="/">トップ</a><a href="/about/">この辞典について</a></p>
 </div></footer>
 <script src="/assets/site.js?v={asset_ver("site.js")}" defer></script>
@@ -365,7 +375,9 @@ def word_page(w, words):
         f'<li><a href="{esc(s["url"])}" rel="noopener" target="_blank">{esc(s["title"])}</a></li>'
         for s in w["sources"]
     )
-    add("sources", "1f4dd", "出典・参考", f'<ol class="srcs">{src}</ol>')
+    fix = form_link(f'{w["word"]} {BASE_URL}/words/{w["slug"]}/')
+    add("sources", "1f4dd", "出典・参考", f'<ol class="srcs">{src}</ol>'
+        f'<p class="fixlink"><a href="{esc(fix)}" rel="noopener" target="_blank">この言葉の内容の誤りを知らせる</a></p>')
 
     tldr = "".join(f"<li>{esc(t)}</li>" for t in w["tldr"])
     share_text = f"「{w['word']}」の意味、ちゃんと分かってる？ {w['catch']}"
@@ -438,6 +450,9 @@ def about_page():
 <p>曖昧度・誤用度・通用度を5段階で示しています。調べた資料をもとに編集部が付けた目安で、統計的な指標ではありません。</p>
 <h2>運営者</h2>
 <p><a href="{OPERATOR[1]}" rel="noopener" target="_blank">{OPERATOR[0]}</a>が運営しています。同じ運営者のサイトに{sister_links()}があります。</p>
+<h2>作り方</h2>
+<p>各ページは、運営者が決めた方針と書き方の決まりに沿って、AI（Anthropic の Claude）が調べて書いています。数字や年は検索で確かめられたものだけを書き、各ページの末尾に出典を載せています。出典には、辞書や公的機関、大学・学会の資料などの確かな情報源を1つ以上入れることにしています。</p>
+<p>運営者は、方針と書き方の決まりを決め、公開したページを見直して直しています。誤りや気になる表現に気づいたら、<a href="{form_link()}" rel="noopener" target="_blank">内容の訂正・ご意見</a>のフォームからお知らせください。取り上げてほしい言葉の提案も受け付けています。</p>
 <h2>情報の扱い</h2>
 <p>流行語の初出や語源は、確定できないことがよくあります。説が複数あるものは複数のまま書き、確認できなかったことは「〜とされる」と書いています。各ページの末尾に出典を載せていますので、あわせてご確認ください。</p>
 </section>
