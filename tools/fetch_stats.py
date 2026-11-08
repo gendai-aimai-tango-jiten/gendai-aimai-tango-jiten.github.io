@@ -114,14 +114,14 @@ def main():
         if not event:
             page_all += a
             page_week += w
-            m = re.fullmatch(r"/words/([a-z0-9-]+)/", name)
+            m = re.fullmatch(r"/?words/([a-z0-9-]+)/?", name)  # 末尾の / はない形で記録される
             if m and m.group(1) in words:
                 s = per_word.setdefault(m.group(1), {"views7": 0, "viewsAll": 0, "shares7": 0, "sharesAll": 0})
                 s["views7"] += w
                 s["viewsAll"] += a
             continue
         name = name.lstrip("/")
-        parts = name.split("/")
+        parts = [x for x in name.split("/") if x != ""] if not name.startswith("search/") else name.split("/")
         if parts[0] == "poll" and len(parts) == 4 and parts[2] in words:
             poll.setdefault(parts[2], {})
             poll[parts[2]][parts[3]] = poll[parts[2]].get(parts[3], 0) + a
@@ -151,6 +151,8 @@ def main():
         d = api("stats/toprefs", {"start": iso(week), "end": iso(now), "limit": 10})
         for r in d.get("stats", d.get("refs", [])) or []:
             name = r.get("name") or r.get("ref") or "（直接・不明）"
+            if name.startswith("gendai-aimai-tango-jiten.github.io"):
+                continue  # サイトの中の移動は流入元に数えない
             refs.append([name, int(r.get("count", 0))])
     except Exception as e:  # noqa: BLE001
         print("流入元は取れませんでした:", e, file=sys.stderr)
