@@ -74,6 +74,25 @@ def main():
             problems.append(f"{p.name}: 見出し語が {words[d['word']]} と重複")
         words[d["word"]] = p.name
 
+    # 曖昧ノートが、収録済みの語だけを取り上げているか
+    for p in sorted((ROOT / "data" / "notes").glob("*.json")):
+        try:
+            n = json.loads(p.read_text(encoding="utf-8"))
+        except Exception as e:  # noqa: BLE001
+            problems.append(f"notes/{p.name}: JSONとして読めない {e}")
+            continue
+        for k in ["slug", "title", "lead", "date", "emoji", "intro", "items", "outro"]:
+            if k not in n:
+                problems.append(f"notes/{p.name}: 項目がない {k}")
+        if n.get("slug") != p.stem:
+            problems.append(f"notes/{p.name}: slug がファイル名と違う")
+        slugs = {q.stem for q in (ROOT / "data" / "words").glob("*.json")}
+        for it in n.get("items", []):
+            if it.get("slug") not in slugs:
+                problems.append(f"notes/{p.name}: 収録されていない語 {it.get('slug')}")
+        if not (ROOT / "assets" / "emoji" / f"{n.get('emoji')}.png").exists():
+            problems.append(f"notes/{p.name}: 絵文字の画像がない {n.get('emoji')}")
+
     # 確かな情報源（辞書・公的機関・大学や学会・論文）が出典に1つ以上あるか
     is_trusted = trusted_checker()
     only_arg = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
