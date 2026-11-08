@@ -55,32 +55,25 @@ def iso(t):
     return t.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def all_paths():
-    """id → (名前, イベントか)"""
-    out, after = {}, None
-    while True:
-        params = {"limit": 200}
-        if after:
-            params["after"] = after
-        d = api("paths", params)
-        for p in d.get("paths", []):
-            out[str(p["id"])] = (p.get("path", ""), bool(p.get("event")))
-        if not d.get("more") or not d.get("paths"):
+def hits(start, end):
+    """期間内のページとイベントの数を、すべて取る。id → (名前, イベントか, 数)
+    /stats/hits は1回に100件まで。取った id を exclude_paths に入れて続きを取る"""
+    out, seen = {}, []
+    for _ in range(100):
+        params = {"start": iso(start), "end": iso(end), "limit": 100}
+        if seen:
+            params["exclude_paths"] = seen
+        d = api("stats/hits", params)
+        got = d.get("hits", []) or []
+        for h in got:
+            pid = str(h.get("path_id"))
+            if pid in out:
+                continue
+            out[pid] = (h.get("path", ""), bool(h.get("event")), int(h.get("count", 0)))
+            seen.append(pid)
+        if not d.get("more") or not got:
             break
-        after = d["paths"][-1]["id"]
     return out
-
-
-def counts(ids, start, end):
-    """id ごとの数（期間内）"""
-    res = {}
-    ids = list(ids)
-    for k in range(0, len(ids), 50):
-        chunk = ids[k:k + 50]
-        d = api("stats/hits", {"start": iso(start), "end": iso(end), "limit": 100, "include_paths": chunk})
-        for h in d.get("hits", []):
-            res[str(h.get("path_id"))] = res.get(str(h.get("path_id")), 0) + int(h.get("count", 0))
-    return res
 
 
 def norm(s):
@@ -105,9 +98,13 @@ def main():
     week = now - dt.timedelta(days=7)
     words = {p.stem: json.loads(p.read_text(encoding="utf-8")) for p in (ROOT / "data" / "words").glob("*.json")}
 
-    paths = all_paths()
-    c_all = counts(paths, START, now)
-    c_week = counts(paths, week, now)
+    h_all = hits(START, now)
+    h_week = hits(week, now)
+    paths = {pid: (v[0], v[1]) for pid, v in h_all.items()}
+    for pid, v in h_week.items():
+        paths.setdefault(pid, (v[0], v[1]))
+    c_all = {pid: v[2] for pid, v in h_all.items()}
+    c_week = {pid: v[2] for pid, v in h_week.items()}
 
     poll, per_word, searches = {}, {}, {}
     page_week = page_all = 0
