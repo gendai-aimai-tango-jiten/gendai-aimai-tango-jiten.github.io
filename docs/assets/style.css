@@ -372,6 +372,8 @@ button { font: inherit; color: inherit; }
 
 /* 日本語の見出しを文節で折り返す（対応ブラウザのみ） */
 .hero-catch, .whero-catch, .wc-catch, .block-title, .endcta-title, .wsec-title, .tldr li { word-break: auto-phrase; text-wrap: pretty; }
+/* 本文も、言葉のまとまりで折り返し、最後の行が1〜2語だけ残らないようにする（対応していないブラウザはこれまでどおり） */
+.wsec p, .wsec li, .umap-item p, .wsec-lead, .hero-lead, .tag-lead, .note-lead, .note-body p, .nitem p, .prose p, .prose li, .pr-text, .poll-q, .poll-label, .mis p, .ncard-lead, .guide p, .mhelp li, .endcta p { word-break: auto-phrase; text-wrap: pretty; }
 
 /* カードの曖昧度をいちばん下にそろえる（タグの行数が違っても高さが合う） */
 .wc-tags { order: 1; margin-top: 14px; }
