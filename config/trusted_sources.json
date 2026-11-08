@@ -1,0 +1,31 @@
+{
+  "_note": "確かな情報源とみなすサイト。各語の出典に、ここに当てはまるものを1つ以上入れる（2026-11-08 黒田さんの方針）。hosts は完全一致、suffixes はホスト名の末尾で判定する。辞書・公的機関・大学や学会・論文のデータベースに限る。",
+  "hosts": [
+    "kotobank.jp",
+    "japanknowledge.com",
+    "dictionary.goo.ne.jp",
+    "imidas.jp",
+    "salon.mainichi-kotoba.jp",
+    "www.nhk.or.jp",
+    "psych.or.jp",
+    "www.psych.or.jp",
+    "www.etymonline.com",
+    "www.merriam-webster.com",
+    "dictionary.cambridge.org",
+    "www.oed.com",
+    "www.britannica.com",
+    "ci.nii.ac.jp",
+    "www.jstage.jst.go.jp",
+    "www.nri.com",
+    "www.nli-research.co.jp"
+  ],
+  "suffixes": [
+    ".go.jp",
+    ".ac.jp",
+    ".ed.jp",
+    ".lg.jp",
+    ".repo.nii.ac.jp",
+    ".edu",
+    ".gov"
+  ]
+}

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """data/words/*.json の中身を点検する。
 
-使い方: python3 tools/check_words.py [--links] [--only slug1,slug2]
+使い方: python3 tools/check_words.py [--links] [--only slug1,slug2] [--strict-sources]
 --links を付けると、出典URLを実際に開いて確かめる（時間がかかる）。
 --only を付けると、開く出典をその語のものだけにする（項目の点検は全語に行う）。
+確かな情報源（config/trusted_sources.json）が出典にない語は、数と slug を知らせる。
+--strict-sources を付けると、--only の語（なければ全語）に確かな情報源がないとき問題として数える。
 問題があれば一覧を出して終了コード1で終わる。
 """
 import json
@@ -19,6 +21,16 @@ REQUIRED = ["slug", "word", "reading", "pos", "emoji", "catch", "oneliner", "tld
             "who_where", "related", "sources"]
 METERS = {"曖昧度", "誤用度", "通用度"}
 TYPES = {"原義", "拡張", "誤用寄り"}
+
+
+def trusted_checker():
+    cfg = ROOT / "config" / "trusted_sources.json"
+    c = json.loads(cfg.read_text(encoding="utf-8")) if cfg.exists() else {"hosts": [], "suffixes": []}
+
+    def ok(url):
+        h = urllib.parse.urlparse(url).hostname or ""
+        return h in c["hosts"] or any(h.endswith(x) for x in c["suffixes"])
+    return ok
 
 
 def check_url(url):
@@ -61,6 +73,21 @@ def main():
         if d["word"] in words:
             problems.append(f"{p.name}: 見出し語が {words[d['word']]} と重複")
         words[d["word"]] = p.name
+
+    # 確かな情報源（辞書・公的機関・大学や学会・論文）が出典に1つ以上あるか
+    is_trusted = trusted_checker()
+    only_arg = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
+    untrusted = []
+    for p in sorted((ROOT / "data" / "words").glob("*.json")):
+        d = json.loads(p.read_text(encoding="utf-8"))
+        if not any(is_trusted(x.get("url", "")) for x in d.get("sources", [])):
+            untrusted.append(p.stem)
+    if untrusted:
+        print(f"確かな情報源が出典にない語 {len(untrusted)}語: {' '.join(untrusted)}")
+    if "--strict-sources" in sys.argv:
+        for slug in untrusted:
+            if only_arg is None or slug in only_arg:
+                problems.append(f"{slug}.json: 確かな情報源（config/trusted_sources.json）が出典にない")
 
     if "--links" in sys.argv:
         only = None
