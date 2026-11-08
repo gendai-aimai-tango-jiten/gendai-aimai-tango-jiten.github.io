@@ -13,6 +13,7 @@
   --base-yellow: #fff3c4;
   --yellow: #f5c518;
   --marker: #f5c518;
+  --masu-line: #a9cbe6;  /* サイト名のマスの線 */
   --ok: #2e6b3c; --ok-bg: #e4f1e1;
   --warn: #8a5a00; --warn-bg: #fff3c4;
   --ng: #b0362b; --ng-bg: #fbe4e1;
@@ -26,7 +27,7 @@
 :root[data-theme="dark"] {
   --base: #14171c; --card: #1d2128; --ink: #eef0f3; --text-body: #c4c9d0; --text-sub: #9aa1aa; --line: #2e333b;
   --sky: #5aa9e6; --sky-on-tint: #8cc4f0; --chip-bg: #22303f; --on-sky: #0b1a28;
-  --base-yellow: #3a3214; --marker: #b8930f;
+  --base-yellow: #3a3214; --masu-line: #3d5a75; --marker: #b8930f;
   --ok: #8fd19e; --ok-bg: #1d3323; --warn: #f0c75e; --warn-bg: #3a3214; --ng: #f2968c; --ng-bg: #3d2220;
   --footer-bg: #0d0f12;
   --shadow: 0 1px 2px rgba(0,0,0,.3); --shadow-up: 0 8px 24px rgba(0,0,0,.4);
@@ -43,8 +44,11 @@ a { color: var(--sky-on-tint); text-underline-offset: 3px; }
 .center { text-align: center; }
 .skip { position: absolute; left: -999px; top: 8px; background: var(--card); padding: 8px 12px; z-index: 100; }
 .skip:focus { left: 8px; }
-/* 強調はマーカーを使わない（2026-11-08 黒田さん）。サイト名の「曖昧」に圏点、見出しには中身の数を添える */
-.kenten { -webkit-text-emphasis: filled circle var(--sky); text-emphasis: filled circle var(--sky); -webkit-text-emphasis-position: over right; text-emphasis-position: over right; }
+/* 強調はマーカーを使わない（2026-11-08 黒田さん）。見出しには中身の数を添える */
+/* トップのサイト名：原稿用紙のマスに1字ずつ入れる（.masu） */
+.hero-title.masu { display: flex; flex-wrap: wrap; font-size: clamp(30px, 5.2vw, 52px); line-height: 1; letter-spacing: 0; }
+.hero-title.masu span { display: grid; place-items: center; width: 1.32em; height: 1.32em; margin-left: -1px; border: 1px solid var(--masu-line); background: var(--card); }
+.hero-title.masu span:first-child { margin-left: 0; }
 .h-count { margin-left: .5em; font-size: .5em; font-weight: 700; color: var(--text-sub); letter-spacing: 0; white-space: nowrap; }
 .h-count b { font-size: 1.5em; font-weight: 900; color: var(--ink); margin-right: 1px; font-variant-numeric: tabular-nums; }
 .inline-emo { width: 1.25em; height: 1.25em; vertical-align: -.25em; margin-right: .35em; }

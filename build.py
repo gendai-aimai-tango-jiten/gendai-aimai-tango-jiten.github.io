@@ -468,7 +468,8 @@ def note_page(n, words):
 
 
 def index_page(words):
-    site_html = SITE.replace("曖昧", '<span class="kenten">曖昧</span>')  # サイト名の「曖昧」に圏点
+    # サイト名は原稿用紙のマスに1字ずつ入れる（2026-11-08 黒田さんが5案から選んだ）
+    site_html = "".join(f'<span aria-hidden="true">{c}</span>' for c in SITE)
     # 既定は推奨度順（recommend_order を参照）
     ordered = recommend_order(words)
     all_cards = [word_card(w, i) for i, w in enumerate(ordered)]
@@ -489,7 +490,7 @@ def index_page(words):
         for t in tag_order)
     body = f"""
 <section class="hero"><div class="wrap hero-in">
-<h1 class="hero-title">{site_html}</h1>
+<h1 class="hero-title masu" aria-label="{SITE}">{site_html}</h1>
 <p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
 <p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見聞きするのに人によって意味がずれる曖昧な言葉を収録。語源や経緯など、様々な観点でまとめています。</p>
 <div class="hero-cta">
