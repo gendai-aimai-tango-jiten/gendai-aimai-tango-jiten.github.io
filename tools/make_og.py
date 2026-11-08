@@ -46,14 +46,15 @@ def wrap(draw, text, f, width):
     return lines
 
 
-def marker_text(draw, xy, text, f, fill=INK):
-    x, y = xy
-    tw = draw.textlength(text, font=f)
-    asc, desc = f.getmetrics()
-    h = asc + desc
-    draw.rectangle([x - 4, y + h * 0.58, x + tw + 4, y + h * 0.92], fill=YELLOW)
-    draw.text((x, y), text, font=f, fill=fill)
-    return tw
+def plain_text(draw, xy, text, f, fill=INK):
+    """文字だけを書く（2026-11-08 にマーカーをやめた。目印は sky_line の短い線）"""
+    draw.text(xy, text, font=f, fill=fill)
+    return draw.textlength(text, font=f)
+
+
+def sky_line(draw, x, y, w=96):
+    """見出しの下に置く、空色の短い線"""
+    draw.rounded_rectangle([x, y, x + w, y + 8], radius=4, fill=SKY)
 
 
 def paste_emoji(img, cp, box, size):
@@ -84,6 +85,7 @@ def word_og(w):
     while size > 56 and d.textlength(w["word"], font=font(FONT_HEAVY, size)) > 720:
         size -= 4
     d.text((64, 108 + (132 - size) // 2), w["word"], font=font(FONT_HEAVY, size), fill=INK)
+    sky_line(d, 72, 268)
     # 句点ごとに行を分け、収まるまで文字を小さくする。収まらなければ均等に折り返す
     sents = [s + "。" for s in w["catch"].split("。") if s]
     size = 42
@@ -95,7 +97,7 @@ def word_og(w):
         sents = wrap(d, w["catch"], f, d.textlength(w["catch"], font=f) / n + 80)
     y = 300
     for line in sents[:3]:
-        marker_text(d, (70, y), line, f)
+        plain_text(d, (70, y), line, f)
         y += int(size * 1.55)
     d.rounded_rectangle([70, y + 18, 70 + d.textlength("意味・語源・使い方のズレ", font=font(FONT_BOLD, 24)) + 40, y + 66], radius=24, fill=(232, 238, 245))
     d.text((90, y + 28), "意味・語源・使い方のズレ", font=font(FONT_BOLD, 24), fill=(21, 104, 166))
@@ -119,8 +121,9 @@ def site_og(words, title, sub, emoji_main=None):
     f = font(FONT_HEAVY, 76)
     y = 140
     for line in title:
-        marker_text(d, (66, y), line, f)
+        plain_text(d, (66, y), line, f)
         y += 108
+    sky_line(d, 72, y + 8)
     frame(img, d)
     return img
 
@@ -138,8 +141,9 @@ def note_og(n):
     f = font(FONT_HEAVY, size)
     y = 140
     for line in wrap(d, n["title"], f, 760)[:4]:
-        marker_text(d, (66, y), line, f)
+        plain_text(d, (66, y), line, f)
         y += int(size * 1.45)
+    sky_line(d, 72, y + 6)
     frame(img, d)
     return img
 
@@ -163,9 +167,10 @@ def result_og(w, i, label):
     f = font(FONT_HEAVY, size)
     y = 170
     for line in wrap(d, text, f, 760)[:3]:
-        marker_text(d, (66, y), line, f)
+        plain_text(d, (66, y), line, f)
         y += int(size * 1.4)
-    d.text((70, y + 30), "あなたはどの意味で使ってる？", font=font(FONT_BOLD, 34), fill=SKY)
+    sky_line(d, 72, y + 6)
+    d.text((70, y + 44), "あなたはどの意味で使ってる？", font=font(FONT_BOLD, 34), fill=SKY)
     frame(img, d)
     return img
 

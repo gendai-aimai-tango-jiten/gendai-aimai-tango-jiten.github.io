@@ -69,9 +69,13 @@ def poll_choices(w):
     return out
 
 
+OG_STYLE = 2  # 2026-11-08 マーカーをやめ、語の下に空色の短い線
+
+
 def result_og_name(w, i, label):
     import hashlib
-    h = hashlib.md5(f'{w["slug"]}|{i}|{label}|{w["word"]}'.encode()).hexdigest()[:6]
+    # OG_STYLE は画像の見た目を変えたときに上げる（名前が変わり、tools/make_og.py が作り直す）
+    h = hashlib.md5(f'{w["slug"]}|{i}|{label}|{w["word"]}|{OG_STYLE}'.encode()).hexdigest()[:6]
     return f'{w["slug"]}-{i}-{h}.jpg'
 
 
@@ -398,7 +402,7 @@ def notes_block(notes, n=3):
         return ""
     return f"""
 <section class="wrap sec-block">
-<div class="block-head"><h2 class="block-title"><span class="mk">曖昧ノート</span></h2><a class="more-link" href="/notes/">すべて見る</a></div>
+<div class="block-head"><h2 class="block-title">曖昧ノート<span class="h-count"><b>{len(notes)}</b>本</span></h2><a class="more-link" href="/notes/">すべて見る</a></div>
 <div class="ngrid">{"".join(note_card(x) for x in notes[:n])}</div>
 </section>
 """
@@ -408,7 +412,7 @@ def notes_index_page(notes):
     body = f"""
 <section class="wrap tagpage">
 <p class="crumb"><a href="/">{SITE}</a></p>
-<h1 class="page-title"><span class="mk">曖昧ノート</span></h1>
+<h1 class="page-title">曖昧ノート<span class="h-count"><b>{len(notes)}</b>本</span></h1>
 <p class="tag-lead">収録した言葉を、テーマごとに読み比べる読み物です。</p>
 <div class="ngrid">{"".join(note_card(x) for x in notes)}</div>
 </section>
@@ -440,7 +444,7 @@ def note_page(n, words):
 <header class="note-head">
 <span class="note-circle">{emoji(n["emoji"], "whero-emo")}</span>
 <p class="ncard-date">{esc(n["date"])}</p>
-<h1 class="note-title"><span class="mk">{esc(n["title"])}</span></h1>
+<h1 class="note-title">{esc(n["title"])}</h1>
 <p class="note-lead">{esc(n["lead"])}</p>
 {share_bar(share_text, url, label="このノートをシェア")}
 </header>
@@ -464,6 +468,7 @@ def note_page(n, words):
 
 
 def index_page(words):
+    site_html = SITE.replace("曖昧", '<span class="kenten">曖昧</span>')  # サイト名の「曖昧」に圏点
     # 既定は推奨度順（recommend_order を参照）
     ordered = recommend_order(words)
     all_cards = [word_card(w, i) for i, w in enumerate(ordered)]
@@ -484,7 +489,7 @@ def index_page(words):
         for t in tag_order)
     body = f"""
 <section class="hero"><div class="wrap hero-in">
-<h1 class="hero-title"><span class="mk">{SITE}</span></h1>
+<h1 class="hero-title">{site_html}</h1>
 <p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
 <p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉を、一語ずつ調べました。語源、広まった経緯、意味のズレ、誤用されやすい点までまとめています。</p>
 <div class="hero-cta">
@@ -496,7 +501,7 @@ def index_page(words):
 </section>
 
 <section class="wrap sec-block" id="words">
-<div class="block-head list-head"><h2 class="block-title"><span class="mk">収録語</span></h2>
+<div class="block-head list-head"><h2 class="block-title">収録語<span class="h-count"><b>{len(words)}</b>語</span></h2>
 <div class="sorter" role="group" aria-label="並び順">
 <button type="button" class="sort-btn on" data-sort="rec" aria-pressed="true">推奨度順</button>
 <button type="button" class="sort-btn" data-sort="now" aria-pressed="false">今時度順</button>
@@ -616,7 +621,7 @@ def word_page(w, words):
 <h1 class="whero-word">{esc(w["word"])}</h1>
 </div>
 </div>
-<p class="whero-catch"><span class="mk">{esc(w["catch"])}</span></p>
+<p class="whero-catch">『{esc(w["catch"])}』</p>
 <div class="whero-tags">{"".join(f'<a href="{tag_url(t)}">{esc(t)}</a>' for t in w["tags"])}</div>
 {share_bar(share_text, url, label="この言葉をシェア")}
 </div></header>
@@ -643,7 +648,7 @@ def word_page(w, words):
 </article>
 
 <section class="wrap sec-block">
-<div class="block-head"><h2 class="block-title"><span class="mk">ほかの曖昧な言葉</span></h2></div>
+<div class="block-head"><h2 class="block-title">ほかの曖昧な言葉</h2></div>
 <div class="wgrid">{"".join(word_card(x) for x in others)}</div>
 </section>
 """
@@ -663,7 +668,7 @@ def tag_page(t, words, all_tags):
     body = f"""
 <section class="wrap tagpage">
 <p class="crumb"><a href="/">{SITE}</a><span>›</span><a href="/#words">収録語</a></p>
-<h1 class="page-title"><span class="mk">{esc(title)}</span></h1>
+<h1 class="page-title">{esc(title)}<span class="h-count"><b>{len(items)}</b>語</span></h1>
 <p class="tag-lead">{esc(lead)}<br>{len(items)}語を、内容が充実していて今よく使われている順に並べています。</p>
 <div class="wgrid">{"".join(word_card(w, i) for i, w in enumerate(items))}</div>
 <h2 class="tag-others-title">ほかのタグから探す</h2>
@@ -682,7 +687,7 @@ def tag_page(t, words, all_tags):
 def about_page():
     body = f"""
 <section class="wrap prose">
-<h1 class="page-title"><span class="mk">この辞典について</span></h1>
+<h1 class="page-title">この辞典について</h1>
 <h2>なぜ作ったか</h2>
 <p>SNSで流行する言葉は、広まる途中で意味が少しずつ変わります。もともとの意味を知らずに使う人、別の意味で受け取る人、皮肉として使う人が混ざり、同じ言葉で話していても話がかみ合わないことがあります。</p>
 <p>この辞典では、そうした「流行っているのに意味がふわっとしている言葉」を一語一ページで取り上げます。正しい意味を一つに決めるのではなく、意味の幅と、ずれが生まれた経緯を見えるようにすることを目指しています。</p>

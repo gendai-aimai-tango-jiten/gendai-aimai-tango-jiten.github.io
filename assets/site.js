@@ -222,7 +222,7 @@
         var text = b.dataset.type === 'none'
           ? '「' + word + '」、知らなかった。どういう意味か調べてみた'
           : '私の「' + word + '」は「' + b.dataset.label + '」派でした。あなたはどの意味で使ってる？';
-        res.innerHTML = '<p class="pr-badge">' + m[0] + '</p><p class="pr-text">' + m[1] + '</p>';
+        res.innerHTML = '<p class="pr-pre">あなたは</p><p class="pr-badge">' + m[0] + '</p><p class="pr-text">' + m[1] + '</p>';
         // みんなの意味派：集計がたまっている語だけ、自分の1票を足して割合を出す
         var opts = $$('.poll-opt', poll);
         var total = opts.reduce(function (s, x) { return s + (+x.dataset.votes || 0); }, 0);

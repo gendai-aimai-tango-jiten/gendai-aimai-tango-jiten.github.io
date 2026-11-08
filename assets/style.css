@@ -43,7 +43,10 @@ a { color: var(--sky-on-tint); text-underline-offset: 3px; }
 .center { text-align: center; }
 .skip { position: absolute; left: -999px; top: 8px; background: var(--card); padding: 8px 12px; z-index: 100; }
 .skip:focus { left: 8px; }
-.mk { background: linear-gradient(transparent 62%, var(--marker) 62%, var(--marker) 92%, transparent 92%); padding: 0 .08em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+/* 強調はマーカーを使わない（2026-11-08 黒田さん）。サイト名の「曖昧」に圏点、見出しには中身の数を添える */
+.kenten { -webkit-text-emphasis: filled circle var(--sky); text-emphasis: filled circle var(--sky); -webkit-text-emphasis-position: over right; text-emphasis-position: over right; }
+.h-count { margin-left: .5em; font-size: .5em; font-weight: 700; color: var(--text-sub); letter-spacing: 0; white-space: nowrap; }
+.h-count b { font-size: 1.5em; font-weight: 900; color: var(--ink); margin-right: 1px; font-variant-numeric: tabular-nums; }
 .inline-emo { width: 1.25em; height: 1.25em; vertical-align: -.25em; margin-right: .35em; }
 .btn-emo { width: 22px; height: 22px; }
 button { font: inherit; color: inherit; }
@@ -160,7 +163,7 @@ button { font: inherit; color: inherit; }
 .whero-reading { margin: 0; font-size: 15px; color: var(--text-sub); font-weight: 600; letter-spacing: .06em; }
 .pos { margin-left: 10px; font-size: 12px; letter-spacing: 0; padding: 2px 10px; border-radius: 999px; background: var(--chip-bg); color: var(--sky-on-tint); }
 .whero-word { margin: 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(48px, 9vw, 88px); line-height: 1.1; letter-spacing: .02em; }
-.whero-catch { margin: 24px 0 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(20px, 3vw, 28px); line-height: 1.6; }
+.whero-catch { margin: 24px 0 0; text-indent: -.5em; font-family: var(--font-display); font-weight: 900; font-size: clamp(20px, 3vw, 28px); line-height: 1.6; }
 .whero-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
 .whero-tags a { text-decoration: none; display: inline-flex; align-items: center; min-height: 32px; transition: background .15s; font-size: 13px; font-weight: 600; color: var(--sky-on-tint); background: var(--chip-bg); border-radius: 999px; padding: 2px 12px; }
 .whero-tags a:hover { background: color-mix(in srgb, var(--chip-bg) 70%, var(--sky) 30%); }
@@ -173,7 +176,7 @@ button { font: inherit; color: inherit; }
 .wtoc a { padding: 5px 0 5px 14px; margin-left: -2px; border-left: 2px solid transparent; font-size: 13px; color: var(--text-body); text-decoration: none; line-height: 1.5; }
 .wtoc a:hover { color: var(--sky-on-tint); border-left-color: var(--sky); }
 
-.tldr { background: var(--card); border: 2px solid var(--ink); border-radius: var(--r-lg); padding: 24px 28px; box-shadow: 6px 6px 0 var(--marker); }
+.tldr { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px 28px; }
 .tldr-title { margin: 0 0 8px; font-family: var(--font-display); font-weight: 900; font-size: 20px; }
 .tldr ol { margin: 0; padding-left: 1.4em; }
 .tldr li { margin: 6px 0; font-weight: 600; line-height: 1.7; }
@@ -211,7 +214,8 @@ button { font: inherit; color: inherit; }
 .u-misuse .umap-tag, .poll-tag.u-misuse { background: var(--ng-bg); color: var(--ng); }
 .poll-tag.u-none { background: var(--line); color: var(--text-sub); }
 .poll-result { margin-top: 16px; background: var(--card); border-radius: var(--r); padding: 20px; animation: pop .35s ease-out; }
-.pr-badge { display: inline-block; margin: 0 0 6px !important; font-family: var(--font-display); font-weight: 900; font-size: 22px; color: var(--ink) !important; background: linear-gradient(transparent 62%, var(--marker) 62%, var(--marker) 92%, transparent 92%); }
+.pr-pre { margin: 0 !important; font-size: 13px; font-weight: 700; color: var(--text-sub) !important; }
+.pr-badge { margin: 0 0 8px !important; font-family: var(--font-display); font-weight: 900; font-size: 30px; line-height: 1.35; color: var(--ink) !important; word-break: auto-phrase; }
 .pr-text { margin: 0 !important; }
 /* みんなの意味派 */
 .pd-title { margin: 18px 0 8px !important; font-weight: 700; font-size: 14px; color: var(--ink) !important; }
@@ -267,7 +271,7 @@ button { font: inherit; color: inherit; }
 .srcs li { margin-bottom: 8px; }
 .srcs small { display: block; color: var(--text-sub); }
 
-.endcta { margin-top: 64px; text-align: center; background: var(--card); border: 2px solid var(--ink); border-radius: var(--r-lg); padding: 36px 24px; box-shadow: 6px 6px 0 var(--marker); }
+.endcta { margin-top: 64px; text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 36px 24px; }
 .endcta-title { margin: 0 0 6px; font-family: var(--font-display); font-weight: 900; font-size: clamp(22px, 3vw, 28px); }
 .endcta p { color: var(--text-body); }
 .center .btn { margin-top: 32px; }
@@ -460,8 +464,7 @@ button { font: inherit; color: inherit; }
 
   .wbody { margin-top: 24px; }
   .wsec { margin-top: 44px; }
-  .tldr { box-shadow: 4px 4px 0 var(--marker); }
-  .endcta { box-shadow: 4px 4px 0 var(--marker); padding: 28px 18px; }
+  .endcta { padding: 28px 18px; }
 }
 
 .more-btn { margin-top: 24px; min-width: 240px; }
@@ -471,3 +474,6 @@ button { font: inherit; color: inherit; }
   .hd-nav a[href='/about/'], .hd-nav a[href='/notes/'] { display: none; }
   .whero-tags a { min-height: 40px; }
 }
+
+/* ほかのサイトへ飛ぶリンク（新しいタブで開くもの）に右上の矢印を付ける（2026-11-08） */
+a[target="_blank"]::after { content: "\2060↗"; display: inline-block; margin-left: .15em; font-size: .85em; font-weight: 400; text-decoration: none; }
