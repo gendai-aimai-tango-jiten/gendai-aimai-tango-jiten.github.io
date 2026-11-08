@@ -124,7 +124,7 @@
       if (!loaded && !tag && !term) shown = total;
       if (more) {
         more.hidden = shown <= limit;
-        more.textContent = 'もっと見る（残り' + (shown - limit) + '語）';
+        if (shown > limit) more.textContent = 'もっと見る（残り' + (shown - limit) + '語）';
       }
       $$('.chip').forEach(function (b) { var on = b.dataset.tag === tag; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
       $('#empty').hidden = shown !== 0;
