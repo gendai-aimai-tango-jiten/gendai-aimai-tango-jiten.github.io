@@ -56,6 +56,61 @@ TAG_INFO = {
 }
 
 
+# 「あなたはどの意味派？」の集計（tools/fetch_poll.py が週1回 GoatCounter から作る）
+POLL_FILE = ROOT / "data" / "poll.json"
+POLL = json.loads(POLL_FILE.read_text(encoding="utf-8")) if POLL_FILE.exists() else {}
+POLL_MIN = 10  # これより少ない回答数では割合を出さない
+
+
+def poll_choices(w):
+    """意味派の選択肢：(番号, 種類, 名前)。番号は集計とシェア用ページの URL に使う"""
+    out = [(str(i), u["type"], u["label"]) for i, u in enumerate(w["usages"])]
+    out.append(("n", "none", "この言葉を知らなかった"))
+    return out
+
+
+def result_og_name(w, i, label):
+    import hashlib
+    h = hashlib.md5(f'{w["slug"]}|{i}|{label}|{w["word"]}'.encode()).hexdigest()[:6]
+    return f'{w["slug"]}-{i}-{h}.jpg'
+
+
+def result_share_text(w, i, label):
+    if i == "n":
+        return f'「{w["word"]}」、知らなかった。どういう意味か調べてみた'
+    return f'私の「{w["word"]}」は「{label}」派でした。あなたはどの意味で使ってる？'
+
+
+def result_page(w, i, label):
+    """結果をシェアしたときの専用ページ。SNS には「私は〇〇派」の画像を見せ、人は単語ページへ移す"""
+    url = f"{BASE_URL}/words/{w['slug']}/ha/{i}/"
+    word_url = f"{BASE_URL}/words/{w['slug']}/"
+    title = (f"「{w['word']}」を知らなかった派" if i == "n" else f"私の「{w['word']}」は「{label}」派") + f"｜{SITE}"
+    desc = "あなたはどの意味で使ってる？ 流行っているのに意味がふわっとしている言葉を、一語ずつ調べた辞典です。"
+    img = f"{BASE_URL}/og/r/{result_og_name(w, i, label)}"
+    return f"""<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{esc(title)}</title>
+<meta name="robots" content="noindex">
+<link rel="canonical" href="{esc(word_url)}">
+<meta name="description" content="{esc(desc)}">
+<meta property="og:site_name" content="{SITE}">
+<meta property="og:title" content="{esc(title)}">
+<meta property="og:description" content="{esc(desc)}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{esc(url)}">
+<meta property="og:image" content="{esc(img)}">
+<meta name="twitter:card" content="summary_large_image">
+<script>location.replace("/words/{w['slug']}/#poll")</script>
+</head>
+<body><p><a href="/words/{w['slug']}/#poll">「{esc(w['word'])}」のページへ</a></p></body>
+</html>
+"""
+
+
 def tag_info(t):
     if t in TAG_INFO:
         return TAG_INFO[t]
@@ -377,14 +432,15 @@ def word_page(w, words):
         secs.append(f'<section class="wsec {extra}" id="{sid}"><h2 class="wsec-title">{emoji(icon, "inline-emo")}{esc(title)}</h2>{inner}</section>')
 
     # あなたはどの意味派？
+    counts = POLL.get("words", {}).get(w["slug"], {})
     opts = "".join(
-        f'<button type="button" class="poll-opt" data-type="{esc(u["type"])}" data-label="{esc(u["label"])}">'
-        f'<span class="poll-tag {USAGE[u["type"]][0]}">{esc(u["type"])}</span>{esc(u["label"])}</button>'
-        for u in w["usages"]
+        f'<button type="button" class="poll-opt" data-i="{i}" data-type="{esc(u["type"])}" data-label="{esc(u["label"])}" data-votes="{int(counts.get(i, 0))}">'
+        f'<span class="poll-tag {USAGE[u["type"]][0]}">{esc(u["type"])}</span><span class="poll-label">{esc(u["label"])}</span></button>'
+        for i, _, _ in poll_choices(w)[:-1] for u in [w["usages"][int(i)]]
     )
-    poll = f"""<div class="poll" data-word="{esc(w["word"])}" data-url="{esc(url)}">
+    poll = f"""<div class="poll" data-word="{esc(w["word"])}" data-url="{esc(url)}" data-min="{POLL_MIN}">
 <p class="poll-q">あなたは「{esc(w["word"])}」を、どの意味で使っていましたか？</p>
-<div class="poll-opts">{opts}<button type="button" class="poll-opt" data-type="none" data-label="この言葉を知らなかった"><span class="poll-tag u-none">？</span>この言葉を知らなかった</button></div>
+<div class="poll-opts">{opts}<button type="button" class="poll-opt" data-i="n" data-type="none" data-label="この言葉を知らなかった" data-votes="{int(counts.get("n", 0))}"><span class="poll-tag u-none">？</span><span class="poll-label">この言葉を知らなかった</span></button></div>
 <div class="poll-result" hidden></div>
 </div>"""
     add("poll", "1f914", "あなたはどの意味派？", poll, "wsec-poll")
@@ -589,6 +645,8 @@ def main():
     write("404.html", notfound_page())
     for w in words:
         write(f"words/{w['slug']}/index.html", word_page(w, words))
+        for i, _, label in poll_choices(w):
+            write(f"words/{w['slug']}/ha/{i}/index.html", result_page(w, i, label))
     write("words.json", json.dumps([{"slug": w["slug"], "word": w["word"]} for w in words], ensure_ascii=False))
 
     urls = ["/", "/about/"] + [tag_url(t) for t, _ in all_tags] + [f"/words/{w['slug']}/" for w in words]

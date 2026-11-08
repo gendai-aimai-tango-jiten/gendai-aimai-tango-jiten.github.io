@@ -209,7 +209,7 @@
     '原義': ['もともとの意味派', 'この言葉が生まれたときの意味で使っています。いまは少数派かもしれませんが、出典に一番近い使い方です。'],
     '拡張': ['広がった使い方派', '流行の中で広がった意味で使っています。いまはこちらで使う人が多い一方、もとの意味を知る人とは話がずれることがあります。'],
     '誤用寄り': ['自由に使う派', '出典からはだいぶ離れた使い方です。通じる相手も多いですが、意味の芯からは外れています。'],
-    'none': ['はじめまして派', 'このページで知った言葉ですね。まずは下の「意味の地図」から読んでみてください。']
+    'none': ['はじめまして派', 'このページで知った言葉ですね。まずは下の「意味の変遷」から読んでみてください。']
   };
   $$('.poll').forEach(function (poll) {
     var res = $('.poll-result', poll);
@@ -217,14 +217,32 @@
       b.addEventListener('click', function () {
         $$('.poll-opt', poll).forEach(function (x) { x.classList.toggle('picked', x === b); x.setAttribute('aria-pressed', x === b); });
         var m = POLL_MSG[b.dataset.type];
-        track('poll/' + b.dataset.type + location.pathname, '意味派：' + b.dataset.type);
+        track('poll' + location.pathname + b.dataset.i, '意味派：' + b.dataset.label);
         var word = poll.dataset.word;
         var text = b.dataset.type === 'none'
           ? '「' + word + '」、知らなかった。どういう意味か調べてみた'
           : '私の「' + word + '」は「' + b.dataset.label + '」派でした。あなたはどの意味で使ってる？';
         res.innerHTML = '<p class="pr-badge">' + m[0] + '</p><p class="pr-text">' + m[1] + '</p>';
+        // みんなの意味派：集計がたまっている語だけ、自分の1票を足して割合を出す
+        var opts = $$('.poll-opt', poll);
+        var total = opts.reduce(function (s, x) { return s + (+x.dataset.votes || 0); }, 0);
+        if (total >= (+poll.dataset.min || 10)) {
+          var all = total + 1;
+          var rows = opts.map(function (x) {
+            var n = (+x.dataset.votes || 0) + (x === b ? 1 : 0);
+            var pct = Math.round(n * 100 / all);
+            return '<li class="' + (x === b ? 'me' : '') + '"><span class="pd-label">' + $('.poll-label', x).textContent +
+              '</span><span class="pd-bar"><i style="width:' + pct + '%"></i></span><b>' + pct + '%</b></li>';
+          }).join('');
+          var mine = Math.round(((+b.dataset.votes || 0) + 1) * 100 / all);
+          res.innerHTML += '<p class="pd-title">みんなの意味派（' + all + '人が回答）</p><ol class="pd">' + rows + '</ol>';
+          text = b.dataset.type === 'none'
+            ? '「' + word + '」、知らなかった。回答した人の' + mine + '%も知らなかったらしい'
+            : '私の「' + word + '」は「' + b.dataset.label + '」派。回答した人の' + mine + '%が同じでした。あなたはどの意味で使ってる？';
+        }
         var sh = document.createElement('div');
-        sh.className = 'share'; sh.dataset.text = text; sh.dataset.url = poll.dataset.url;
+        // シェアするURLは、結果の画像が出る専用ページにする
+        sh.className = 'share'; sh.dataset.text = text; sh.dataset.url = poll.dataset.url + 'ha/' + b.dataset.i + '/';
         // ページ内のシェアボタンと同じ並びを写す
         var tpl = $('.share');
         sh.innerHTML = '<span class="share-label">結果をシェア</span>' + (tpl ? $$('.sbtn', tpl).map(function (x) { return x.outerHTML; }).join('') : '');

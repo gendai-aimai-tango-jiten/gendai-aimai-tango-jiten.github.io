@@ -125,9 +125,56 @@ def site_og(words, title, sub, emoji_main=None):
     return img
 
 
+def result_og(w, i, label):
+    """「私の〇〇は△△派でした」の共有画像"""
+    img = Image.new("RGBA", (W, H), BASE + (255,))
+    d = ImageDraw.Draw(img)
+    d.ellipse([860, 90, 1140, 370], fill=BASE_YELLOW)
+    paste_emoji(img, w["emoji"], (905, 135), 190)
+    f_head = font(FONT_HEAVY, 46)
+    head = f"私の「{w['word']}」は" if i != "n" else f"「{w['word']}」を"
+    size = 46
+    while size > 30 and d.textlength(head, font=font(FONT_HEAVY, size)) > 760:
+        size -= 2
+    d.text((70, 78), head, font=font(FONT_HEAVY, size), fill=INK)
+    text = f"「{label}」派" if i != "n" else "知らなかった派"
+    size = 72
+    while size > 40 and len(wrap(d, text, font(FONT_HEAVY, size), 760)) > 2:
+        size -= 4
+    f = font(FONT_HEAVY, size)
+    y = 170
+    for line in wrap(d, text, f, 760)[:3]:
+        marker_text(d, (66, y), line, f)
+        y += int(size * 1.4)
+    d.text((70, y + 30), "あなたはどの意味で使ってる？", font=font(FONT_BOLD, 34), fill=SKY)
+    frame(img, d)
+    return img
+
+
+def make_results(words):
+    """意味派の画像は、名前が変わったものだけ作り直し、使われなくなったものは消す"""
+    sys.path.insert(0, str(ROOT))
+    import build
+    rdir = OUT / "r"
+    rdir.mkdir(parents=True, exist_ok=True)
+    want, made = set(), 0
+    for w in words:
+        for i, _, label in build.poll_choices(w):
+            name = build.result_og_name(w, i, label)
+            want.add(name)
+            if not (rdir / name).exists():
+                result_og(w, i, label).convert("RGB").save(rdir / name, quality=70, optimize=True, progressive=True)
+                made += 1
+    for p in rdir.glob("*.jpg"):
+        if p.name not in want:
+            p.unlink()
+    print(f"made {made} result images ({len(want)} in all)", file=sys.stderr)
+
+
 def main():
     words = [json.loads(p.read_text(encoding="utf-8")) for p in sorted((ROOT / "data" / "words").glob("*.json"))]
     OUT.mkdir(parents=True, exist_ok=True)
+    make_results(words)
     for w in words:
         word_og(w).convert("RGB").save(OUT / f"{w['slug']}.png", optimize=True)
     site_og(words, ["その言葉、", "ほんとに同じ意味で", "使ってる？"], "流行ってるのに、意味がふわっとしてる言葉の辞典").convert("RGB").save(OUT / "site.png", optimize=True)

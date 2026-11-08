@@ -1,0 +1,43 @@
+name: 意味派の集計
+
+# 毎週月曜 6:00（日本時間）に「あなたはどの意味派？」の回答数を GoatCounter から集め、サイトを作り直して公開する
+on:
+  schedule:
+    - cron: "0 21 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: poll
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 集計
+        env:
+          GOATCOUNTER_TOKEN: ${{ secrets.GOATCOUNTER_TOKEN }}
+        run: python3 tools/fetch_poll.py
+      - name: 作り直して公開
+        run: |
+          git config user.name "ashitano-tenki"
+          git config user.email "346352130+ashitano-tenki@users.noreply.github.com"
+          if git diff --quiet data/poll.json; then
+            echo "集計に変わりがありません"
+            exit 0
+          fi
+          python3 build.py
+          git add data/poll.json docs
+          git commit -m "意味派の集計を更新"
+          for i in 1 2 3; do
+            git pull --rebase origin main && python3 build.py && git add docs && { git diff --cached --quiet || git commit -m "意味派の集計を更新（作り直し）"; } && git push origin main && exit 0
+            sleep 10
+          done
+          exit 1

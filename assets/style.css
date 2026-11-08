@@ -213,6 +213,15 @@ button { font: inherit; color: inherit; }
 .poll-result { margin-top: 16px; background: var(--card); border-radius: var(--r); padding: 20px; animation: pop .35s ease-out; }
 .pr-badge { display: inline-block; margin: 0 0 6px !important; font-family: var(--font-display); font-weight: 900; font-size: 22px; color: var(--ink) !important; background: linear-gradient(transparent 62%, var(--marker) 62%, var(--marker) 92%, transparent 92%); }
 .pr-text { margin: 0 !important; }
+/* みんなの意味派 */
+.pd-title { margin: 18px 0 8px !important; font-weight: 700; font-size: 14px; color: var(--ink) !important; }
+.pd { list-style: none; margin: 0 0 4px; padding: 0; display: grid; gap: 6px; }
+.pd li { display: grid; grid-template-columns: minmax(0, 1fr) 90px 3em; align-items: center; gap: 10px; font-size: 13px; }
+.pd li.me .pd-label { font-weight: 700; color: var(--ink); }
+.pd-label { color: var(--text-body); overflow-wrap: anywhere; }
+.pd-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.pd-bar i { display: block; height: 100%; background: var(--sky); border-radius: 999px; }
+.pd li b { text-align: right; font-variant-numeric: tabular-nums; }
 .poll-result .share { margin-top: 14px; }
 @keyframes pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
 
