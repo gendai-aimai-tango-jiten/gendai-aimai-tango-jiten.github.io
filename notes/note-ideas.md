@@ -1,6 +1,6 @@
 # 曖昧ノートのネタ帳（公開しない作業メモ）
 
-毎週火曜の定期タスク「gendai-aimai-note」が、「未着手」の上から1つ選んで書く。書いたら「済み」に移す。未着手が3つを切ったら、収録語のデータから作れるテーマを足す。
+毎日10時ごろの定期タスク「gendai-aimai-note」が、「未着手」の上から1つ選んで書く。書いたら「済み」に移す。未着手が3つを切ったら、収録語のデータから作れるテーマを足す。
 
 ## 書き方
 - data/notes/<slug>.json。形は data/notes/majority-flipped.json をお手本にする（slug, title, lead, date, emoji, intro, items[{slug, figure, comment}], outro, sources）。
