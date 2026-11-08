@@ -270,6 +270,15 @@ button { font: inherit; color: inherit; }
 .prose p, .prose li { color: var(--text-body); }
 .nf-emo { margin: 24px 0 0; }
 
+/* タグのページ */
+.tagpage { padding-top: 32px; }
+.tag-lead { color: var(--text-body); margin: 8px 0 28px; max-width: 44em; }
+.tag-others-title { font-family: var(--font-display); font-size: 20px; margin: 56px 0 14px; }
+.taglinks { display: flex; flex-wrap: wrap; gap: 8px; }
+.taglinks a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600; }
+.taglinks a span { color: var(--text-sub); font-size: 12px; font-weight: 600; }
+.taglinks a:hover { border-color: var(--sky); color: var(--sky-on-tint); }
+
 /* 誤りを知らせるリンク（出典の下） */
 .fixlink { margin: 16px 0 0; font-size: 13px; }
 .fixlink a { color: var(--text-sub); }

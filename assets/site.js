@@ -75,29 +75,39 @@
     });
   });
 
-  // 収録語の並び替え
+  // 収録語の一覧
+  // ページには推奨度順の最初の24語だけを入れ、残りは並び替え・検索・タグ・「もっと見る」を使ったときに
+  // /cards.json から読み込む（語が増えてもトップを軽く保つため）
   var list = $('#wordlist');
-  if (list) {
+  var q = $('#q');
+  if (list && q) {
     var SORTS = {
       rec: function (a, b) { return a.dataset.rec - b.dataset.rec; },
       now: function (a, b) { return b.dataset.now - a.dataset.now || b.dataset.rich - a.dataset.rich; },
       amb: function (a, b) { return b.dataset.amb - a.dataset.amb || b.dataset.mis - a.dataset.mis; },
       kana: function (a, b) { return a.dataset.kana.localeCompare(b.dataset.kana, 'ja'); }
     };
-    $$('.sort-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        $$('.sort-btn').forEach(function (x) { x.classList.toggle('on', x === btn); x.setAttribute('aria-pressed', x === btn); });
-        $$('.wc', list).sort(SORTS[btn.dataset.sort]).forEach(function (c) { list.appendChild(c); });
+    var total = +list.dataset.total || 0;
+    var loaded = $$('.wc', list).length >= total;
+    var waiting = [];
+    var ensureAll = function (cb) {
+      if (loaded) { cb(); return; }
+      waiting.push(cb);
+      if (waiting.length > 1) return;
+      fetch(list.dataset.src).then(function (r) { return r.json(); }).then(function (cards) {
+        list.innerHTML = cards.join('');
+        loaded = true;
+      }).catch(function () { /* 読み込めなくても、いまある語で続ける */ }).then(function () {
+        var w = waiting; waiting = [];
+        w.forEach(function (f) { f(); });
       });
-    });
-  }
+    };
+    var sortKey = 'rec';
+    var applySort = function () { $$('.wc', list).sort(SORTS[sortKey]).forEach(function (c) { list.appendChild(c); }); };
 
-  // 検索とタグの絞り込み
-  var q = $('#q');
-  if (q && list) {
     var tag = new URLSearchParams(location.search).get('tag') || '';
     var norm = function (s) {
-      return (s || '').toLowerCase().replace(/[\u30a1-\u30f6]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); });
+      return (s || '').toLowerCase().replace(/[ァ-ヶ]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0x60); });
     };
     // 一度に出すのは24語まで。「もっと見る」で24語ずつ足す
     var PAGE = 24, limit = PAGE;
@@ -110,6 +120,8 @@
         if (ok) shown++;
         c.hidden = !ok || shown > limit;
       });
+      // まだ全部を読み込んでいないときは、絞り込みなしの総数で「もっと見る」を出す
+      if (!loaded && !tag && !term) shown = total;
       if (more) {
         more.hidden = shown <= limit;
         more.textContent = 'もっと見る（残り' + (shown - limit) + '語）';
@@ -118,6 +130,15 @@
       $('#empty').hidden = shown !== 0;
       $('#result-count').textContent = (tag || term) ? shown + '語が見つかりました' : '';
     };
+
+    $$('.sort-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        $$('.sort-btn').forEach(function (x) { x.classList.toggle('on', x === btn); x.setAttribute('aria-pressed', x === btn); });
+        sortKey = btn.dataset.sort;
+        // 並び替えたあとも、表示する語数を保ったまま出し直す
+        ensureAll(function () { applySort(); filter(true); });
+      });
+    });
     $$('.chip').forEach(function (b) {
       b.addEventListener('click', function () {
         tag = b.dataset.tag;
@@ -125,10 +146,11 @@
         var url = new URL(location.href);
         if (tag) url.searchParams.set('tag', tag); else url.searchParams.delete('tag');
         history.replaceState(null, '', url);
-        filter();
+        ensureAll(function () { applySort(); filter(); });
       });
     });
-    q.addEventListener('input', filter);
+    q.addEventListener('focus', function () { ensureAll(function () { applySort(); filter(true); }); });
+    q.addEventListener('input', function () { ensureAll(function () { applySort(); filter(); }); });
     // 入力が1.5秒止まったら、検索された言葉として数える
     var qTimer;
     q.addEventListener('input', function () {
@@ -138,15 +160,17 @@
         if (v.length >= 2) track('search/' + v, '検索：' + v);
       }, 1500);
     });
-    if (more) more.addEventListener('click', function () { limit += PAGE; filter(true); });
-    // 並び替えたあとも、表示する語数を保ったまま出し直す
-    $$('.sort-btn').forEach(function (btn) { btn.addEventListener('click', function () { filter(true); }); });
-    filter();
-    // 単語ページのタグから来たときは、選ばれたタグが横に隠れないよう見える位置まで送る
-    var onChip = tag && $(".chip.on");
-    if (onChip) { var box = onChip.parentNode; box.scrollLeft += onChip.getBoundingClientRect().left - box.getBoundingClientRect().left - 16; }
-    // 絞り込んで一覧の高さが変わったあとに、一覧の位置へ移る
-    if (location.hash === "#words" && $("#words")) $("#words").scrollIntoView();
+    if (more) more.addEventListener('click', function () { ensureAll(function () { applySort(); limit += PAGE; filter(true); }); });
+
+    var afterFirst = function () {
+      // 単語ページのタグから来たときは、選ばれたタグが横に隠れないよう見える位置まで送る
+      var onChip = tag && $('.chip.on');
+      if (onChip) { var box = onChip.parentNode; box.scrollLeft += onChip.getBoundingClientRect().left - box.getBoundingClientRect().left - 16; }
+      // 絞り込んで一覧の高さが変わったあとに、一覧の位置へ移る
+      if (location.hash === '#words' && $('#words')) $('#words').scrollIntoView();
+    };
+    if (tag) ensureAll(function () { filter(); afterFirst(); });
+    else { filter(); afterFirst(); }
   }
 
   // 数の数え上げ

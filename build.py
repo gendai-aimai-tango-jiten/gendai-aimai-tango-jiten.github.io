@@ -31,6 +31,55 @@ FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScnE0Q4HPRIwQ5Uo5jNj8VHvNpv
 FORM_ENTRY_TARGET = "866526369"  # 「対象の言葉、またはページのURL」の欄
 
 
+# タグごとのページ（/tags/<slug>/）の URL・見出し・説明
+TAG_INFO = {
+    "意味が変わった言葉": ("imi-ga-kawatta", "意味が変わった言葉の一覧",
+                      "もともとの意味から、使われるうちに意味が広がったり、ずれたりした言葉をまとめました。"),
+    "SNS・動画": ("sns", "SNS・動画から広まった言葉の一覧",
+                "X、TikTok、YouTube などのSNSや動画から広まり、意味がふわっとしたまま使われている言葉です。"),
+    "誤用の定番": ("goyo", "誤用されやすい言葉・意味を間違えやすい言葉の一覧",
+              "文化庁の「国語に関する世論調査」などで、本来とは違う意味で使う人が多いとされる言葉です。"),
+    "ネットスラング": ("net-slang", "ネットスラングの意味一覧",
+                "ネット上の会話から生まれ、いまでは日常でも使われるようになった言葉です。"),
+    "ビジネス": ("business", "ビジネスでよく聞く曖昧な言葉の一覧",
+             "職場や会議でよく聞くのに、人によって指す中身が違うビジネスの言葉です。"),
+    "社会": ("shakai", "社会や世相を表す言葉の一覧",
+           "社会の変化や世代の違いを表すときに使われ、立場によって受け取り方が変わる言葉です。"),
+    "心理学由来": ("shinrigaku", "心理学から広まった言葉の一覧",
+              "心理学の用語から広まり、日常では本来より広い意味で使われることが多い言葉です。"),
+    "推し文化": ("oshi-bunka", "推し活・ファン文化の言葉の一覧",
+             "推し活やファン文化から生まれ、外にも広まった言葉です。"),
+    "恋愛": ("renai", "恋愛の言葉の一覧", "恋愛にまつわる言葉で、人によって思い浮かべる場面が違うものです。"),
+    "オノマトペ由来": ("onomatope", "オノマトペから生まれた言葉の一覧", "擬音語や擬態語から生まれた言葉です。"),
+    "脳科学っぽい言葉": ("nokagaku", "脳科学っぽい言葉の一覧",
+                 "脳科学の言葉のように聞こえるけれど、日常では科学とは別の意味で使われている言葉です。"),
+}
+
+
+def tag_info(t):
+    if t in TAG_INFO:
+        return TAG_INFO[t]
+    if t.endswith("年流行") and t[:4].isdigit():
+        return (f"ryuko-{t[:4]}", f"{t[:4]}年に流行した言葉の一覧", f"{t[:4]}年ごろに広まった言葉です。")
+    import hashlib
+    return ("tag-" + hashlib.md5(t.encode()).hexdigest()[:8], f"{t}の言葉の一覧", f"「{t}」のタグが付いた言葉です。")
+
+
+def tag_url(t):
+    return f"/tags/{tag_info(t)[0]}/"
+
+
+def ld_json(data):
+    """検索エンジン向けの構造化データ"""
+    s = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    return f'<script type="application/ld+json">{s}</script>'
+
+
+def crumbs_ld(items):
+    return {"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": i + 1, "name": n, "item": BASE_URL + u} for i, (n, u) in enumerate(items)]}
+
+
 def form_link(target=""):
     if not target:
         return FORM_URL
@@ -119,7 +168,7 @@ def sister_links():
                     for n, u, k in SISTER_SITES)
 
 
-def page(title, desc, body, path="/", og="/og/site.png", cls=""):
+def page(title, desc, body, path="/", og="/og/site.png", cls="", ld=None):
     url = BASE_URL + path
     full = title if title == SITE else f"{title}｜{SITE}"
     return f"""<!doctype html>
@@ -146,6 +195,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls=""):
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css?v={asset_ver("style.css")}">
 {head_extra()}
+{ld_json(ld) if ld else ""}
 </head>
 <body class="{cls}">
 <a class="skip" href="#main">本文へ</a>
@@ -253,7 +303,11 @@ def word_card(w, rec=0):
 def index_page(words):
     # 既定は推奨度順（recommend_order を参照）
     ordered = recommend_order(words)
-    cards = "".join(word_card(w, i) for i, w in enumerate(ordered))
+    all_cards = [word_card(w, i) for i, w in enumerate(ordered)]
+    cards = "".join(all_cards[:24])
+    cards_json = json.dumps(all_cards, ensure_ascii=False)
+    import hashlib
+    cards_ver = hashlib.md5(cards_json.encode()).hexdigest()[:8]
     # ヒーローの飾りは最初に収録した3語の絵文字
     hero_words = [w for s in ("kaerukagensho", "dopagaki", "meroi") for w in words if w["slug"] == s][:3]
     tag_count = {}
@@ -291,7 +345,7 @@ def index_page(words):
 <div class="chips" role="group" aria-label="タグで絞り込む"><button type="button" class="chip on" data-tag="" aria-pressed="true">すべて<span>{len(words)}</span></button>{tag_chips}</div>
 </div>
 <p class="result-count" id="result-count" aria-live="polite"></p>
-<div class="wgrid" id="wordlist">{cards}</div>
+<div class="wgrid" id="wordlist" data-total="{len(all_cards)}" data-src="/cards.json?v={cards_ver}">{cards}</div>
 <div class="center"><button type="button" class="btn btn-sub more-btn" id="more" hidden>もっと見る</button></div>
 <p class="empty" id="empty" hidden>見つかりませんでした。別の言葉で探してみてください。</p>
 </section>
@@ -307,7 +361,9 @@ def index_page(words):
 </div>
 </section>
 """
-    return page(SITE, DESC, body, "/", "/og/site.png", "home")
+    ld = {"@context": "https://schema.org", "@type": "WebSite", "name": SITE, "url": BASE_URL + "/",
+          "description": DESC, "inLanguage": "ja", "publisher": {"@type": "Person", "name": OPERATOR[0], "url": OPERATOR[1]}}
+    return page(SITE, DESC, body, "/", "/og/site.png", "home", ld), cards_json
 
 
 def word_page(w, words):
@@ -396,7 +452,7 @@ def word_page(w, words):
 </div>
 </div>
 <p class="whero-catch"><span class="mk">{esc(w["catch"])}</span></p>
-<div class="whero-tags">{"".join(f'<a href="/?tag={urllib.parse.quote(t)}#words">{esc(t)}</a>' for t in w["tags"])}</div>
+<div class="whero-tags">{"".join(f'<a href="{tag_url(t)}">{esc(t)}</a>' for t in w["tags"])}</div>
 {share_bar(share_text, url, label="この言葉をシェア")}
 </div></header>
 
@@ -426,8 +482,36 @@ def word_page(w, words):
 <div class="wgrid">{"".join(word_card(x) for x in others)}</div>
 </section>
 """
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "DefinedTerm", "name": w["word"], "alternateName": w["reading"], "description": w["oneliner"],
+         "url": url, "inDefinedTermSet": {"@type": "DefinedTermSet", "name": SITE, "url": BASE_URL + "/"}},
+        crumbs_ld([(SITE, "/"), (w["word"], f"/words/{w['slug']}/")]),
+    ]}
     return page(f"{w['word']}とは？意味・語源・使い方のズレ", f"{w['catch']} {w['oneliner']}", body,
-                f"/words/{w['slug']}/", f"/og/{w['slug']}.png", "wordpage")
+                f"/words/{w['slug']}/", f"/og/{w['slug']}.png", "wordpage", ld)
+
+
+def tag_page(t, words, all_tags):
+    slug, title, lead = tag_info(t)
+    items = [w for w in recommend_order(words) if t in w["tags"]]
+    others = "".join(f'<a href="{tag_url(x)}">{esc(x)}<span>{n}</span></a>' for x, n in all_tags if x != t)
+    body = f"""
+<section class="wrap tagpage">
+<p class="crumb"><a href="/">{SITE}</a><span>›</span><a href="/#words">収録語</a></p>
+<h1 class="page-title"><span class="mk">{esc(title)}</span></h1>
+<p class="tag-lead">{esc(lead)}<br>{len(items)}語を、内容が充実していて今よく使われている順に並べています。</p>
+<div class="wgrid">{"".join(word_card(w, i) for i, w in enumerate(items))}</div>
+<h2 class="tag-others-title">ほかのタグから探す</h2>
+<div class="taglinks">{others}</div>
+</section>
+"""
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "CollectionPage", "name": title, "description": lead, "url": BASE_URL + f"/tags/{slug}/",
+         "hasPart": [{"@type": "DefinedTerm", "name": w["word"], "url": BASE_URL + f"/words/{w['slug']}/"} for w in items]},
+        crumbs_ld([(SITE, "/"), (title, f"/tags/{slug}/")]),
+    ]}
+    return page(title, f"{lead}{len(items)}語の意味・語源・使い方のズレをまとめています。", body,
+                f"/tags/{slug}/", "/og/site.png", "tagpage", ld)
 
 
 def about_page():
@@ -489,14 +573,25 @@ def main():
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(text, encoding="utf-8")
 
-    write("index.html", index_page(words))
+    index_html, cards_json = index_page(words)
+    write("index.html", index_html)
+    write("cards.json", cards_json)
+    tag_count = {}
+    for w in words:
+        for t in w["tags"]:
+            tag_count[t] = tag_count.get(t, 0) + 1
+    all_tags = sorted(tag_count.items(), key=lambda x: (x[0].endswith("年流行"), -x[1] if not x[0].endswith("年流行") else -int(x[0][:4])))
+    slugs = [tag_info(t)[0] for t, _ in all_tags]
+    assert len(slugs) == len(set(slugs)), "タグのURLが重なっている"
+    for t, _ in all_tags:
+        write(f"tags/{tag_info(t)[0]}/index.html", tag_page(t, words, all_tags))
     write("about/index.html", about_page())
     write("404.html", notfound_page())
     for w in words:
         write(f"words/{w['slug']}/index.html", word_page(w, words))
     write("words.json", json.dumps([{"slug": w["slug"], "word": w["word"]} for w in words], ensure_ascii=False))
 
-    urls = ["/", "/about/"] + [f"/words/{w['slug']}/" for w in words]
+    urls = ["/", "/about/"] + [tag_url(t) for t, _ in all_tags] + [f"/words/{w['slug']}/" for w in words]
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{BASE_URL}{u}</loc></url>\n" for u in urls) + "</urlset>\n")
     # AIの学習用クローラーは断り、検索エンジンには開く（コミュニティ図鑑と同じ）
