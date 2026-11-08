@@ -258,6 +258,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls="", ld=None):
 <a class="logo" href="/">{emoji(BRAND_EMOJI, "logo-emo", 28)}<span>{SITE}</span></a>
 <nav class="hd-nav" aria-label="メニュー">
 <a href="/#words">収録語</a>
+<a href="/notes/">曖昧ノート</a>
 <a href="/about/">この辞典について</a>
 <button type="button" class="hd-dice" data-random aria-label="ランダムに1つ見てみる" title="ランダムに1つ見てみる">{emoji("1f3b2", "dice-emo", 22)}</button>
 <button type="button" class="hd-dice hd-theme" data-theme-toggle aria-label="ダーク表示にする" title="ダーク表示にする">{emoji("1f319", "theme-moon", 22)}{emoji("2600", "theme-sun", 22)}</button>
@@ -272,7 +273,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls="", ld=None):
 <p>運営：<a href="{OPERATOR[1]}" rel="noopener" target="_blank">{OPERATOR[0]}</a></p>
 <p>運営者のほかのサイト：{sister_links()}</p>
 <p><a href="{form_link()}" rel="noopener" target="_blank">内容の訂正・ご意見</a></p>
-<p class="ft-links"><a href="/">トップ</a><a href="/about/">この辞典について</a></p>
+<p class="ft-links"><a href="/">トップ</a><a href="/notes/">曖昧ノート</a><a href="/about/">この辞典について</a></p>
 </div></footer>
 <script src="/assets/site.js?v={asset_ver("site.js")}" defer></script>
 </body>
@@ -355,6 +356,94 @@ def word_card(w, rec=0):
     )
 
 
+NOTES_DIR = ROOT / "data" / "notes"
+
+
+def load_notes():
+    if not NOTES_DIR.exists():
+        return []
+    notes = [json.loads(p.read_text(encoding="utf-8")) for p in NOTES_DIR.glob("*.json")]
+    return sorted(notes, key=lambda n: (n["date"], n["slug"]), reverse=True)
+
+
+def note_card(n):
+    return (f'<a class="ncard" href="/notes/{n["slug"]}/">'
+            f'<span class="ncard-emo">{emoji(n["emoji"], "wc-emo")}</span>'
+            f'<span class="ncard-date">{esc(n["date"])}</span>'
+            f'<span class="ncard-title">{esc(n["title"])}</span>'
+            f'<span class="ncard-lead">{esc(n["lead"])}</span></a>')
+
+
+def notes_block(notes, n=3):
+    if not notes:
+        return ""
+    return f"""
+<section class="wrap sec-block">
+<div class="block-head"><h2 class="block-title"><span class="mk">曖昧ノート</span></h2><a class="more-link" href="/notes/">すべて見る</a></div>
+<div class="ngrid">{"".join(note_card(x) for x in notes[:n])}</div>
+</section>
+"""
+
+
+def notes_index_page(notes):
+    body = f"""
+<section class="wrap tagpage">
+<p class="crumb"><a href="/">{SITE}</a></p>
+<h1 class="page-title"><span class="mk">曖昧ノート</span></h1>
+<p class="tag-lead">収録した言葉を、テーマごとに読み比べる読み物です。</p>
+<div class="ngrid">{"".join(note_card(x) for x in notes)}</div>
+</section>
+"""
+    ld = {"@context": "https://schema.org", "@type": "CollectionPage", "name": "曖昧ノート", "url": BASE_URL + "/notes/"}
+    return page("曖昧ノート", "収録した言葉を、テーマごとに読み比べる読み物です。", body, "/notes/", "/og/site.png", "notespage", ld)
+
+
+def note_page(n, words):
+    by_slug = {w["slug"]: w for w in words}
+    url = f"{BASE_URL}/notes/{n['slug']}/"
+    items = []
+    for k, it in enumerate(n["items"], 1):
+        w = by_slug.get(it["slug"])
+        if not w:
+            continue
+        items.append(f"""<li class="nitem">
+<div class="nitem-head"><span class="nitem-no">{k}</span><span class="nitem-circle">{emoji(w["emoji"], "nitem-emo")}</span>
+<div><p class="nitem-reading">{esc(w["reading"])}</p><h2 class="nitem-word"><a href="/words/{w["slug"]}/">{esc(w["word"])}</a></h2></div></div>
+{f'<p class="nitem-figure">{esc(it["figure"])}</p>' if it.get("figure") else ""}
+<p>{esc(it["comment"])}</p>
+<p class="nitem-link"><a href="/words/{w["slug"]}/">「{esc(w["word"])}」のページを読む</a></p>
+</li>""")
+    src = "".join(f'<li><a href="{esc(s["url"])}" rel="noopener" target="_blank">{esc(s["title"])}</a></li>' for s in n.get("sources", []))
+    share_text = f"{n['title']}｜{SITE}"
+    body = f"""
+<article class="wrap note">
+<p class="crumb"><a href="/">{SITE}</a><span>›</span><a href="/notes/">曖昧ノート</a></p>
+<header class="note-head">
+<span class="note-circle">{emoji(n["emoji"], "whero-emo")}</span>
+<p class="ncard-date">{esc(n["date"])}</p>
+<h1 class="note-title"><span class="mk">{esc(n["title"])}</span></h1>
+<p class="note-lead">{esc(n["lead"])}</p>
+{share_bar(share_text, url, label="このノートをシェア")}
+</header>
+<div class="note-body prose">{"".join(f"<p>{inline(p)}</p>" for p in n.get("intro", []))}</div>
+<ol class="nitems">{"".join(items)}</ol>
+<div class="note-body prose">{"".join(f"<p>{inline(p)}</p>" for p in n.get("outro", []))}</div>
+{f'<section class="note-src"><h2>出典・参考</h2><ol class="srcs">{src}</ol></section>' if src else ""}
+<section class="endcta">
+<p class="endcta-title">まわりの人は、どの意味で使ってる？</p>
+{share_bar(share_text, url, label="このノートを送る", cls="share-big")}
+</section>
+</article>
+"""
+    ld = {"@context": "https://schema.org", "@graph": [
+        {"@type": "Article", "headline": n["title"], "description": n["lead"], "datePublished": n["date"],
+         "url": url, "image": f"{BASE_URL}/og/notes/{n['slug']}.png", "inLanguage": "ja",
+         "author": {"@type": "Person", "name": OPERATOR[0], "url": OPERATOR[1]}},
+        crumbs_ld([(SITE, "/"), ("曖昧ノート", "/notes/"), (n["title"], f"/notes/{n['slug']}/")]),
+    ]}
+    return page(n["title"], n["lead"], body, f"/notes/{n['slug']}/", f"/og/notes/{n['slug']}.png", "notepage", ld)
+
+
 def index_page(words):
     # 既定は推奨度順（recommend_order を参照）
     ordered = recommend_order(words)
@@ -405,6 +494,7 @@ def index_page(words):
 <p class="empty" id="empty" hidden>見つかりませんでした。別の言葉で探してみてください。</p>
 </section>
 
+{notes_block(load_notes())}
 <section class="wrap sec-block">
 <div class="panel guide">
 <div class="guide-text">
@@ -649,7 +739,12 @@ def main():
             write(f"words/{w['slug']}/ha/{i}/index.html", result_page(w, i, label))
     write("words.json", json.dumps([{"slug": w["slug"], "word": w["word"]} for w in words], ensure_ascii=False))
 
-    urls = ["/", "/about/"] + [tag_url(t) for t, _ in all_tags] + [f"/words/{w['slug']}/" for w in words]
+    notes = load_notes()
+    write("notes/index.html", notes_index_page(notes))
+    for n in notes:
+        write(f"notes/{n['slug']}/index.html", note_page(n, words))
+    urls = (["/", "/about/", "/notes/"] + [f"/notes/{n['slug']}/" for n in notes]
+            + [tag_url(t) for t, _ in all_tags] + [f"/words/{w['slug']}/" for w in words])
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
           + "".join(f"<url><loc>{BASE_URL}{u}</loc></url>\n" for u in urls) + "</urlset>\n")
     # AIの学習用クローラーは断り、検索エンジンには開く（コミュニティ図鑑と同じ）

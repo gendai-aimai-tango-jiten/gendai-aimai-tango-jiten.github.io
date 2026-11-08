@@ -27,7 +27,9 @@ def fetch(cp, size, dest):
 
 def main():
     bad = []
-    for p in sorted((ROOT / "data" / "words").glob("*.json")):
+    # 語と曖昧ノートの絵文字
+    files = sorted((ROOT / "data" / "words").glob("*.json")) + sorted((ROOT / "data" / "notes").glob("*.json"))
+    for p in files:
         cp = json.loads(p.read_text(encoding="utf-8"))["emoji"]
         ok = fetch(cp, 128, ROOT / "assets" / "emoji" / f"{cp}.png")
         ok = fetch(cp, 512, ROOT / "tools" / "emoji512" / f"{cp}.png") and ok

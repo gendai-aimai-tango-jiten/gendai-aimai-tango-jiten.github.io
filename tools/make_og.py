@@ -125,6 +125,25 @@ def site_og(words, title, sub, emoji_main=None):
     return img
 
 
+def note_og(n):
+    """曖昧ノートの共有画像"""
+    img = Image.new("RGBA", (W, H), BASE + (255,))
+    d = ImageDraw.Draw(img)
+    d.ellipse([880, 90, 1140, 350], fill=BASE_YELLOW)
+    paste_emoji(img, n["emoji"], (920, 130), 180)
+    d.text((70, 70), "曖昧ノート", font=font(FONT_BOLD, 32), fill=SKY)
+    size = 64
+    while size > 40 and len(wrap(d, n["title"], font(FONT_HEAVY, size), 760)) > 3:
+        size -= 4
+    f = font(FONT_HEAVY, size)
+    y = 140
+    for line in wrap(d, n["title"], f, 760)[:4]:
+        marker_text(d, (66, y), line, f)
+        y += int(size * 1.45)
+    frame(img, d)
+    return img
+
+
 def result_og(w, i, label):
     """「私の〇〇は△△派でした」の共有画像"""
     img = Image.new("RGBA", (W, H), BASE + (255,))
@@ -175,6 +194,11 @@ def main():
     words = [json.loads(p.read_text(encoding="utf-8")) for p in sorted((ROOT / "data" / "words").glob("*.json"))]
     OUT.mkdir(parents=True, exist_ok=True)
     make_results(words)
+    ndir = OUT / "notes"
+    ndir.mkdir(parents=True, exist_ok=True)
+    for p in sorted((ROOT / "data" / "notes").glob("*.json")):
+        n = json.loads(p.read_text(encoding="utf-8"))
+        note_og(n).convert("RGB").save(ndir / f"{n['slug']}.png", optimize=True)
     for w in words:
         word_og(w).convert("RGB").save(OUT / f"{w['slug']}.png", optimize=True)
     site_og(words, ["その言葉、", "ほんとに同じ意味で", "使ってる？"], "流行ってるのに、意味がふわっとしてる言葉の辞典").convert("RGB").save(OUT / "site.png", optimize=True)
