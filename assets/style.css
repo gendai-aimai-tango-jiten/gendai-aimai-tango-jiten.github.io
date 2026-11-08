@@ -84,6 +84,7 @@ button { font: inherit; color: inherit; }
 .hero-catch { margin: 18px 0 0; font-family: var(--font-display); font-weight: 900; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.45; }
 .hero-catch em { font-style: normal; color: var(--sky); }
 .hero-lead { max-width: 36em; margin: 18px 0 0; color: var(--text-body); }
+@media (min-width: 961px) { .hero-lead { max-width: 37em; text-wrap: balance; } }  /* PCでは2行に収める */
 .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 32px; }
 .stat { display: flex; align-items: baseline; gap: 4px; }
 .stat b { font-family: var(--font-display); font-weight: 900; font-size: 44px; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -392,6 +393,11 @@ button { font: inherit; color: inherit; }
 /* 検索とタグ */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .finder { display: grid; gap: 12px; margin-bottom: 16px; }
+/* 検索窓と並び順を1行に並べ、高さを48pxにそろえる（2026-11-08） */
+.finder-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.finder-row .search { flex: 1 1 320px; }
+.finder-row .sorter { flex: none; height: 48px; align-items: stretch; }
+.finder-row .sort-btn { min-height: 0; }
 .search { position: relative; display: block; max-width: 480px; }
 .search-emo { position: absolute; left: 14px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); }
 .search input { width: 100%; height: 48px; padding: 0 16px 0 44px; font: inherit; font-size: 16px; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 999px; }
@@ -422,7 +428,8 @@ button { font: inherit; color: inherit; }
   .hd-dice { width: 44px; height: 44px; }
   .hd-nav a { min-height: 44px; display: inline-flex; align-items: center; }
   .sort-btn, .chip { min-height: 44px; }
-  .sorter { width: 100%; }
+  .sorter, .finder-row .sorter { width: 100%; }
+  .finder-row .sorter { height: auto; }
   .sort-btn { flex: 1; padding: 0 4px; font-size: 13px; white-space: nowrap; min-width: 0; }
 
   /* トップ */

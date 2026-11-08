@@ -491,7 +491,7 @@ def index_page(words):
 <section class="hero"><div class="wrap hero-in">
 <h1 class="hero-title">{site_html}</h1>
 <p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
-<p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見かけるのに、聞く人によって意味がずれる言葉を、一語ずつ調べました。語源、広まった経緯、意味のズレ、誤用されやすい点までまとめています。</p>
+<p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見聞きするのに人によって意味がずれる曖昧な言葉を収録。語源や経緯など、様々な観点でまとめています。</p>
 <div class="hero-cta">
 <div class="stat"><b data-count="{len(words)}">{len(words)}</b><span>語収録</span></div>
 <button type="button" class="btn btn-main" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1つ見てみる</button>
@@ -501,15 +501,17 @@ def index_page(words):
 </section>
 
 <section class="wrap sec-block" id="words">
-<div class="block-head list-head"><h2 class="block-title">収録語<span class="h-count"><b>{len(words)}</b>語</span></h2>
+<h2 class="sr">収録語</h2>
+<div class="finder">
+<div class="finder-row">
+<label class="search"><span class="sr">言葉を探す</span>{emoji("1f50d", "search-emo")}<input id="q" type="search" placeholder="言葉・読み・タグで探す" autocomplete="off"></label>
 <div class="sorter" role="group" aria-label="並び順">
 <button type="button" class="sort-btn on" data-sort="rec" aria-pressed="true">推奨度順</button>
 <button type="button" class="sort-btn" data-sort="now" aria-pressed="false">今時度順</button>
 <button type="button" class="sort-btn" data-sort="amb" aria-pressed="false">曖昧度順</button>
 <button type="button" class="sort-btn" data-sort="kana" aria-pressed="false">五十音順</button>
-</div></div>
-<div class="finder">
-<label class="search"><span class="sr">言葉を探す</span>{emoji("1f50d", "search-emo")}<input id="q" type="search" placeholder="言葉・読み・タグで探す" autocomplete="off"></label>
+</div>
+</div>
 <div class="chips" role="group" aria-label="タグで絞り込む"><button type="button" class="chip on" data-tag="" aria-pressed="true">すべて<span>{len(words)}</span></button>{tag_chips}</div>
 </div>
 <p class="result-count" id="result-count" aria-live="polite"></p>
