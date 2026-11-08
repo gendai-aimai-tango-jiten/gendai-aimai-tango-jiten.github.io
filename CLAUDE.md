@@ -20,10 +20,14 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 
 | ファイル | 中身 |
 |---|---|
-| tools/fetch_emoji.py | 語の emoji に使う Noto Emoji の画像（128px と 512px）を取ってくる |
-| tools/check_words.py | 語のデータの点検。`--links` で出典のURLも開く（`--only slug1,slug2` でその語の出典だけ）。自動のアクセスを断るサイトは config/linkcheck.json の refusing_hosts に入れて除外する |
+| tools/fetch_emoji.py | 語と曖昧ノートの emoji に使う Noto Emoji の画像（128px と 512px）を取ってくる |
+| tools/check_words.py | 語のデータの点検。`--links` で出典のURLも開く（`--only slug1,slug2` でその語の出典だけ）。自動のアクセスを断るサイトは config/linkcheck.json の refusing_hosts に入れて除外する。確かな情報源（config/trusted_sources.json）がない語を知らせ、`--strict-sources` で問題として数える。曖昧ノートが収録済みの語だけを使っているかも見る |
+| tools/make_og.py | 共有画像を作る。語ごと（docs/og/<slug>.png）、意味派の結果（docs/og/r/、名前が変わったものだけ作り直す）、曖昧ノート（docs/og/notes/） |
+| tools/fetch_poll.py | 「あなたはどの意味派？」の回答数を GoatCounter の API から集めて data/poll.json に書く。GitHub の Secret「GOATCOUNTER_TOKEN」が要る |
+| .github/workflows/poll.yml | 毎週月曜 6:00 に fetch_poll.py を動かし、変わっていればサイトを作り直して push する |
 | .github/workflows/check-links.yml | 毎週月曜 7:00 に出典のリンクを点検し、問題があれば Issue を作る |
 | 定期タスク「gendai-aimai-words」 | 1日2回（9:07と21:07ごろ）に、notes/queue.md から3語を選んで書き、公開する（2026-11-08 に3時間おき・5語から変更）。2026-11-08 登録、Auto モード。手順は notes/routine-words.md（変えたら定期タスクの中身も直す）。アプリが閉じていると、次に開いたときに動く |
+| 定期タスク「gendai-aimai-note」 | 毎週火曜10:20ごろに、notes/note-ideas.md から1つ選んで曖昧ノートを書き、公開する。2026-11-08 登録（権限の設定は保存されなかったので、最初の実行で確認が出ることがある） |
 | 定期タスク「gendai-aimai-share」 | 毎週水曜9:00ごろに、推奨度順でまだシェアしていない語を1つ選び、notes/share-log.md に記録して、Asana のタスク「現代曖昧単語辞典をシェア」の説明欄の一番上に書く。黒田さんは翌日の木曜にシェアする。2026-11-08 登録、Auto モード |
 
 ## 計測と公開の設定（2026-11-08 黒田さんが採用）
@@ -31,14 +35,20 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 - アクセス解析は GoatCounter（サイトコード aimaijiten、https://aimaijiten.goatcounter.com）。build.py の GOATCOUNTER。計測用の assets/count.js はコミュニティ図鑑と同じもの。ページの閲覧のほか、シェア（share/…）、ランダム（random）、タグ（tag/…）、検索（search/…、入力が1.5秒止まったとき）、意味派（poll/…）、ほかのサイトへのリンク（sister/…）を数える。
 - Google Search Console は 2026-11-08 に黒田さんのアカウントで確認済み（HTMLタグ、build.py の GSC_VERIFY。消すと確認が外れる）。サイトマップは /sitemap.xml。
 - robots.txt は AI の学習用クローラー（build.py の AI_BOTS）を断り、検索エンジンには開く。図鑑と同じ。
+- 内容の訂正・ご意見は Google フォーム（黒田さんのアカウント、build.py の FORM_URL）。フッター、「この辞典について」、各単語ページの出典の下にリンクがある。単語ページからは「対象の言葉」の欄に語とURLが入った状態で開く。
+- 「この辞典について」の「作り方」に、AI（Claude）が調べて書き、運営者が方針を決めて見直していることを明記している。
+- 「あなたはどの意味派？」は、回答が10件以上たまった語だけ「みんなの意味派」の割合を出す（build.py の POLL_MIN）。結果のシェアは /words/<slug>/ha/<番号>/ の専用ページ（「私の〇〇は△△派」の画像つき、人は単語ページへ移す、検索には出さない）。
+- 単語ページ・タグのページ・曖昧ノートに構造化データ（JSON-LD）を入れている。
 - フッターと「この辞典について」に運営者（黒田悠介、linktr.ee）と、ほかのサイト（あしたの転機観測所、コミュニティ図鑑）を出す。build.py の OPERATOR と SISTER_SITES。
 
 ## ページ
 
 | URL | 中身 |
 |---|---|
-| / | トップ。収録語の一覧（推奨度順・今時度順・曖昧度順・五十音順、検索、タグの絞り込み、24語ずつ「もっと見る」）、この辞典の読み方 |
+| / | トップ。収録語の一覧（推奨度順・今時度順・曖昧度順・五十音順、検索、タグの絞り込み、24語ずつ「もっと見る」。ページには最初の24語だけを入れ、残りは /cards.json から読み込む）、曖昧ノートの新着3本、この辞典の読み方 |
 | /words/{slug}/ | 単語ページ。30秒でわかる、曖昧メーター、どういう意味？、あなたはどの意味派？、意味の変遷、語源・成り立ち、広まった経緯、ズレのポイント、多様な観点（タブ）、使用シーン、関連語、出典、シェア、タグの近い6語 |
+| /tags/{slug}/ | タグごとの一覧（検索から来てもらうためのページ）。URLと見出しは build.py の TAG_INFO。新しいタグを作ったら TAG_INFO にも足す |
+| /notes/ と /notes/{slug}/ | 曖昧ノート（収録語をテーマごとに読み比べる読み物）。データは data/notes/、ネタ帳は notes/note-ideas.md |
 | /about/ | この辞典について |
 
 ## 守ること（黒田さんの判断）
