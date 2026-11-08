@@ -2,21 +2,49 @@
  "refs_week": [
   [
    "（直接・不明）",
-   3
+   10
+  ],
+  [
+   "app.asana.com",
+   1
+  ],
+  [
+   "facebook.com",
+   1
+  ],
+  [
+   "t.co",
+   1
+  ],
+  [
+   "www.facebook.com",
+   1
   ]
  ],
  "search_missing_week": [],
- "updated": "2026-11-08",
+ "updated": "2026-11-09",
  "views": {
-  "all": 13,
-  "week": 13
+  "all": 40,
+  "week": 40
  },
  "week": {
-  "end": "2026-11-08",
-  "start": "2026-11-01"
+  "end": "2026-11-09",
+  "start": "2026-11-02"
  },
  "words": {
+  "ashimotowosukuu": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 1,
+   "viewsAll": 1
+  },
   "dopagaki": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 3,
+   "viewsAll": 3
+  },
+  "frenemy": {
    "shares7": 0,
    "sharesAll": 0,
    "views7": 1,
@@ -31,10 +59,52 @@
   "kaerukagensho": {
    "shares7": 0,
    "sharesAll": 0,
+   "views7": 3,
+   "viewsAll": 3
+  },
+  "lookism": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 1,
+   "viewsAll": 1
+  },
+  "moru": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 1,
+   "viewsAll": 1
+  },
+  "nitsumaru": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 1,
+   "viewsAll": 1
+  },
+  "reskilling": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 1,
+   "viewsAll": 1
+  },
+  "shigodeki": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 1,
+   "viewsAll": 1
+  },
+  "tenchimuyo": {
+   "shares7": 0,
+   "sharesAll": 0,
    "views7": 1,
    "viewsAll": 1
   },
   "wellbeing": {
+   "shares7": 0,
+   "sharesAll": 0,
+   "views7": 2,
+   "viewsAll": 2
+  },
+  "yuruburakku": {
    "shares7": 0,
    "sharesAll": 0,
    "views7": 1,
