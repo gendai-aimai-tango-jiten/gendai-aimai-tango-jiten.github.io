@@ -20,7 +20,7 @@
   "origin_date": "2024年12月（Xの投稿）",
   "peak": "2025〜2026年",
   "added": "2026-11-07",
-  "updated": "2026-11-07",
+  "updated": "2026-11-09",
   "meters": {
     "曖昧度": 4,
     "誤用度": 4,
@@ -185,6 +185,10 @@
     {
       "title": "'Brain rot' named Oxford Word of the Year 2024（Oxford University Press）",
       "url": "https://corp.oup.com/news/brain-rot-named-oxford-word-of-the-year-2024/"
+    },
+    {
+      "title": "ドーパミンとは（コトバンク）",
+      "url": "https://kotobank.jp/word/%E3%81%A9%E3%83%BC%E3%81%B1%E3%81%BF%E3%82%93-3161765"
     }
   ]
 }
