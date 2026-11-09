@@ -15,7 +15,7 @@
   "origin_date": "古くからある言葉（ほめ言葉としては2010年代〜）",
   "peak": "2010年代後半〜",
   "added": "2026-11-08",
-  "updated": "2026-11-08",
+  "updated": "2026-11-09",
   "meters": {"曖昧度": 4, "誤用度": 2, "通用度": 4},
   "definition": "もとは、ワラビやタケノコなどのあくが強く、のどがいがいがするような味を表す言葉です。「えぐみ」という名詞もあります。\n\nそこから、むごい、あくどい、ひどい、という悪い意味で使われるようになり、さらに若い世代の間では、「この映像、エグい」「エグいほどうまい」のように、**驚くほどすごい、最高**という意味でも使われるようになりました。\n\n**ひどいのか、すごいのか**は、文脈と言い方で判断するしかありません。共通しているのは、良くも悪くも「普通ではない、極端だ」という感覚です。",
   "usages": [
@@ -48,6 +48,7 @@
   "sources": [
     {"title": "「エグい」の意味と語源（Oggi.jp）", "url": "https://oggi.jp/7697196"},
     {"title": "Egui: One Japanese Word's Journey from Awful to Awesome（Unseen Japan）", "url": "https://unseen-japan.com/egui-japanese-meaning-change/"},
-    {"title": "えぐい（Wiktionary）", "url": "https://ja.wiktionary.org/wiki/%E3%81%88%E3%81%90%E3%81%84"}
+    {"title": "えぐい（Wiktionary）", "url": "https://ja.wiktionary.org/wiki/%E3%81%88%E3%81%90%E3%81%84"},
+    {"title": "蘞い（コトバンク：デジタル大辞泉・精選版日本国語大辞典）", "url": "https://kotobank.jp/word/%E8%98%9E%E3%81%84-444250"}
   ]
 }
