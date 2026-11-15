@@ -542,10 +542,19 @@ body { text-autospace: normal; text-spacing-trim: trim-start; }
 .scene-go:hover .scene-word { text-decoration: underline; text-underline-offset: 3px; }
 .scene-mini { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--base-yellow); flex: none; }
 .scene-mini-emo { width: 22px; height: 22px; }
-.scene-go small { font-size: 13px; font-weight: 600; color: var(--text-sub); white-space: nowrap; }
-.scene-pager { display: flex; gap: 6px; flex: none; }
-.scene-pager i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
-.scene-pager i.on { background: var(--sky); }
+.scene-go > span:last-child { display: grid; line-height: 1.45; min-width: 0; }
+.scene-go small { font-size: 12px; font-weight: 600; color: var(--text-sub); white-space: nowrap; }
+.scene-pager { display: flex; flex: none; margin-right: -6px; }
+.scene-dot { appearance: none; display: grid; place-items: center; min-width: 22px; height: 44px; padding: 0 4px; border: 0; background: none; cursor: pointer; }
+.scene-dot i { position: relative; display: block; width: 8px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; transition: width .25s, background-color .2s; }
+.scene-dot:hover i { background: color-mix(in srgb, var(--line) 50%, var(--sky)); }
+/* いまの点は横に長くなり、次へ進むまでの時間に合わせて空色が満ちる（自動で進まないときは最初から空色） */
+.scene-dot.on i { width: 26px; background: var(--sky); }
+.scene.timing .scene-dot.on i { background: color-mix(in srgb, var(--sky) 25%, var(--line)); }
+.scene-dot.on i::after { content: ""; position: absolute; inset: 0; background: var(--sky); transform-origin: 0 50%; }
+.scene.timing .scene-dot.on i::after { animation: scene-timer 4s linear both; }
+.scene.timing.paused .scene-dot.on i::after { animation-play-state: paused; }
+@keyframes scene-timer { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @container (max-width: 360px) {
   .scene-floor { gap: 8px; }
   .scene-think { padding: 10px 12px 12px; }
@@ -557,7 +566,6 @@ body { text-autospace: normal; text-spacing-trim: trim-start; }
   .scene { --pw: 56px; }
   .scene, .scene-heads { column-gap: 10px; }
   .scene::before { width: 170px; height: 170px; margin-left: -85px; bottom: 56px; }
-  .scene-go small { display: none; }
 }
 
 /* --- サイト名のマス：字を <i> で包む（開いたときに1字ずつ入る） --- */

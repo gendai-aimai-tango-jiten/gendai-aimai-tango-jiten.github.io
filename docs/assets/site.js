@@ -369,13 +369,17 @@
     mio.observe(meters);
   }
 
-  // トップの絵：数秒ごとに別の言葉へ（見えている間だけ。マウスを乗せている間は止める）
+  // トップの絵：数秒ごとに別の言葉へ。いまの点が満ちたら次へ進み、点を押せばその言葉へ切り替わる
+  // 見えている間だけ進め、マウスを乗せている間は止める。動きを減らす設定の人には自動で進めない（押せば切り替わる）
   var scene = $('.scene');
-  if (scene && !reduce) {
+  if (scene) {
     var pairs = [];
     try { pairs = JSON.parse(scene.dataset.pairs || '[]'); } catch (e) { pairs = []; }
-    if (pairs.length > 1) {
-      var si = 0, stimer = null, svisible = false, shover = false;
+    var pager = $('.scene-pager', scene);
+    if (pairs.length > 1 && pager) {
+      pager.hidden = false;
+      var si = 0, svisible = false, shover = false;
+      var dots = $$('.scene-dot', scene);
       var fillSide = function (side, u) {
         var t = $('.scene-' + side + ' .poll-tag', scene);
         t.className = 'poll-tag ' + u[0]; t.textContent = u[1];
@@ -388,28 +392,35 @@
         $('.scene-word', scene).textContent = pr.word;
         $('.scene-go', scene).href = '/words/' + pr.slug + '/';
         $('.scene-mini-emo', scene).src = '/assets/emoji/' + pr.emoji + '.png';
-        $$('.scene-pager i', scene).forEach(function (d, k) { d.classList.toggle('on', k === i); });
+        dots.forEach(function (d, k) { d.classList.toggle('on', k === i); d.setAttribute('aria-pressed', String(k === i)); });
       };
-      var nextPair = function () {
-        if (shover || !svisible || document.hidden) return;
+      var syncPause = function () { scene.classList.toggle('paused', shover || !svisible || document.hidden); };
+      var goPair = function (i) {
+        if (i === si) return;
         scene.classList.remove('enter'); scene.classList.add('leave');
         setTimeout(function () {
-          si = (si + 1) % pairs.length;
+          si = i;
           renderPair(si);
           scene.classList.remove('leave'); void scene.offsetWidth; scene.classList.add('enter');
-        }, 170);
+        }, reduce ? 0 : 170);
       };
-      if ('IntersectionObserver' in window) {
-        new IntersectionObserver(function (es) {
-          svisible = es[0].isIntersecting;
-          clearInterval(stimer);
-          if (svisible) stimer = setInterval(nextPair, 3500);
-        }, { threshold: 0.4 }).observe(scene);
+      dots.forEach(function (d, k) { d.addEventListener('click', function () { goPair(k); }); });
+      if (!reduce) {
+        scene.classList.add('timing');
+        // いまの点が満ちきったら次の言葉へ
+        scene.addEventListener('animationend', function (e) {
+          if (e.animationName === 'scene-timer') goPair((si + 1) % pairs.length);
+        });
+        if ('IntersectionObserver' in window) {
+          new IntersectionObserver(function (es) { svisible = es[0].isIntersecting; syncPause(); }, { threshold: 0.4 }).observe(scene);
+        } else { svisible = true; }
+        scene.addEventListener('mouseenter', function () { shover = true; syncPause(); });
+        scene.addEventListener('mouseleave', function () { shover = false; syncPause(); });
+        scene.addEventListener('focusin', function () { shover = true; syncPause(); });
+        scene.addEventListener('focusout', function () { shover = false; syncPause(); });
+        document.addEventListener('visibilitychange', syncPause);
+        syncPause();
       }
-      scene.addEventListener('mouseenter', function () { shover = true; });
-      scene.addEventListener('mouseleave', function () { shover = false; });
-      scene.addEventListener('focusin', function () { shover = true; });
-      scene.addEventListener('focusout', function () { shover = false; });
     }
   }
 

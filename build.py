@@ -547,7 +547,10 @@ def hero_scene(words):
     if not pairs:
         return ""
     p = pairs[0]
-    dots = "".join(f'<i class="{"on" if i == 0 else ""}"></i>' for i in range(len(pairs)))
+    # 点は押すと切り替わるボタン。いまの点は、次へ進むまでの時間に合わせて満ちていく（2026-11-15 黒田さん）
+    dots = "".join(f'<button type="button" class="scene-dot{" on" if i == 0 else ""}" data-i="{i}" '
+                   f'aria-label="{esc(x["word"])}" aria-pressed="{"true" if i == 0 else "false"}"><i></i></button>'
+                   for i, x in enumerate(pairs))
     data = esc(json.dumps(pairs, ensure_ascii=False))
     return f"""<figure class="scene" data-pairs="{data}" aria-label="同じ言葉でも、人によって思い浮かべる意味がちがう例">
 <div class="scene-heads">
@@ -561,7 +564,7 @@ def hero_scene(words):
 </div>
 <figcaption class="scene-cap">
 <a class="scene-go" href="/words/{p["slug"]}/"><span class="scene-mini">{emoji(p["emoji"], "scene-mini-emo")}</span><span><span class="scene-word">{esc(p["word"])}</span><small>のページを読む</small></span></a>
-<span class="scene-pager" aria-hidden="true">{dots}</span>
+<span class="scene-pager" role="group" aria-label="ほかの言葉に切り替える" hidden>{dots}</span>
 </figcaption>
 </figure>"""
 
