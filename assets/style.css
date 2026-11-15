@@ -329,7 +329,8 @@ button { font: inherit; color: inherit; }
 
 /* フッター */
 .ft { margin-top: 96px; background: var(--footer-bg); color: var(--footer-text); padding: 40px 0 48px; font-size: 14px; }
-.ft p { margin: 6px 0; max-width: 40em; }
+.ft p { margin: 6px 0; }  /* 横幅いっぱいに使い、ほかのサイトの行が折り返さないようにする（2026-11-15 黒田さん） */
+.ft p a { white-space: nowrap; }  /* サイト名の途中では折り返さない */
 .ft-logo { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 900; font-size: 18px; color: #fff; }
 .ft-links { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 16px !important; }
 .ft a { color: var(--footer-text); }
