@@ -428,27 +428,6 @@
     }
   }
 
-  // カードから単語ページへ、見出し語がつながって移る（View Transitions。名前は押したカードの語にだけ付ける）
-  var vtName = function (el) { if (el) el.style.viewTransitionName = 'vt-word'; };
-  var wordOf = function (path) { var m = /^\/words\/([^/]+)\/$/.exec(path); return m && m[1]; };
-  window.addEventListener('pageswap', function (e) {
-    if (!e.viewTransition || !e.activation || !e.activation.entry) return;
-    var to = new URL(e.activation.entry.url);
-    var slug = wordOf(to.pathname);
-    var here = wordOf(location.pathname);
-    if (here && !slug) vtName($('.whero-word .fit'));                     // 単語ページ → 一覧
-    else if (slug) vtName($('.wc[href="/words/' + slug + '/"] .fit'));   // 一覧 → 単語ページ
-  });
-  window.addEventListener('pagereveal', function (e) {
-    if (!e.viewTransition) return;
-    var from = window.navigation && navigation.activation && navigation.activation.from;
-    var fromSlug = from && from.url ? wordOf(new URL(from.url).pathname) : null;
-    var el = wordOf(location.pathname) ? $('.whero-word .fit') : (fromSlug && $('.wc[href="/words/' + fromSlug + '/"] .fit'));
-    if (!el) return;
-    vtName(el);
-    e.viewTransition.finished.then(function () { el.style.viewTransitionName = ''; }, function () { el.style.viewTransitionName = ''; });
-  });
-
   // 本文に出てくる収録語：指を乗せる（タップ・フォーカス）と、意味のカードを出す
   var terms = $$('.term');
   if (terms.length && typeof HTMLElement.prototype.showPopover === 'function') {

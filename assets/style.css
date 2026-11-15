@@ -714,10 +714,8 @@ body { text-autospace: normal; text-spacing-trim: trim-start; }
 
 /* ===== 動き（動きを減らす設定の人には出さない） ===== */
 @media (prefers-reduced-motion: no-preference) {
-  /* カードから単語ページへ：見出し語がつながって移る（名前は site.js が押したカードにだけ付ける） */
+  /* ページの移り変わりは、全体がふわっと入れ替わるだけ。見出し語を移す動きはやめた（2026-11-15 黒田さん、違和感があるため） */
   @view-transition { navigation: auto; }
-  ::view-transition-group(vt-word) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
-  ::view-transition-old(vt-word), ::view-transition-new(vt-word) { height: 100%; animation-duration: .45s; }
 
   /* 単語ページの冒頭：見出し語にピントが合い、一言が出て、絵文字が一度だけ跳ねる */
   .whero-word { transform-origin: 0 60%; animation: focus-in .62s cubic-bezier(.2, .7, .2, 1) both; }

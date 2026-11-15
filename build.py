@@ -586,9 +586,12 @@ def index_page(words):
             tag_count[t] = tag_count.get(t, 0) + 1
     # 年の流行タグは後ろに、それ以外は多い順
     tag_order = sorted(tag_count, key=lambda t: (t.endswith("年流行"), -tag_count[t] if not t.endswith("年流行") else -int(t[:4])))
+    # トップの札には「〇〇年流行」と3語未満のタグを出さない（1語だけの札が並ぶため。2026-11-15 黒田さん）。
+    # 単語ページのタグとタグのページには残す。3語以上になれば自動で札に出る
+    CHIP_MIN = 3
     tag_chips = "".join(
         f'<button type="button" class="chip" data-tag="{esc(t)}" aria-pressed="false">{esc(t)}<span>{tag_count[t]}</span></button>'
-        for t in tag_order)
+        for t in tag_order if not t.endswith("年流行") and tag_count[t] >= CHIP_MIN)
     body = f"""
 <section class="hero"><div class="wrap hero-in">
 <h1 class="hero-title masu" aria-label="{SITE}">{site_html}</h1>
