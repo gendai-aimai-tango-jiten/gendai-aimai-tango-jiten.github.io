@@ -145,7 +145,8 @@ def form_link(target=""):
     return FORM_URL + "?usp=pp_url&entry." + FORM_ENTRY_TARGET + "=" + urllib.parse.quote(target)
 SISTER_SITES = [("あしたの転機観測所", "https://ashitano-tenki.github.io/", "kansoku"),
                 ("コミュニティ図鑑", "https://community-zukan.github.io/", "zukan"),
-                ("会社のことば研究所", "https://kotoba-kenkyujo.github.io/", "kotoba")]  # 2026-11-08 追加
+                ("会社のことば研究所", "https://kotoba-kenkyujo.github.io/", "kotoba"),  # 2026-11-08 追加
+                ("散歩対話「Walk, Talk, Fork.」", "https://walktalkfork.github.io/", "wtf")]  # 2026-11-15 追加。「散歩対話」で検索に出るよう、リンクの文字に入れる
 AI_BOTS = ["GPTBot", "ClaudeBot", "anthropic-ai", "Google-Extended", "CCBot", "Applebot-Extended",
            "Meta-ExternalAgent", "Bytespider", "cohere-training-data-crawler"]
 
