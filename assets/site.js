@@ -255,6 +255,10 @@
   if (!reduce) {
     $$('[data-count]').forEach(function (el) {
       var to = +el.dataset.count, t0 = null;
+      // 数えている間も、最後の数の幅のままにする（横の「語収録」やボタンが動かないように。右にそろえて数える）
+      var lock = function () { el.style.minWidth = ''; el.style.minWidth = Math.ceil(el.getBoundingClientRect().width) + 'px'; };
+      lock();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { var t = el.textContent; el.textContent = to; lock(); el.textContent = t; });
       el.textContent = '0';
       function step(t) {
         if (!t0) t0 = t;

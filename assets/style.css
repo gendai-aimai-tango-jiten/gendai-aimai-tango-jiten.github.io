@@ -91,7 +91,7 @@ button { font: inherit; color: inherit; }
 @media (min-width: 961px) { .hero-lead { max-width: 37em; text-wrap: balance; } }  /* PCでは2行に収める */
 .hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; margin-top: 32px; }
 .stat { display: flex; align-items: baseline; gap: 4px; }
-.stat b { font-family: var(--font-display); font-weight: 900; font-size: 44px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat b { font-family: var(--font-display); font-weight: 900; font-size: 44px; line-height: 1.1; font-variant-numeric: tabular-nums; text-align: right; }
 .stat span { font-size: 15px; color: var(--text-sub); font-weight: 600; }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-14px) rotate(4deg); } }
 
