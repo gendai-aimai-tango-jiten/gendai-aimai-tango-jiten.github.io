@@ -127,9 +127,87 @@
         if (shown > limit) more.textContent = 'もっと見る（残り' + (shown - limit) + '語）';
       }
       $$('.chip').forEach(function (b) { var on = b.dataset.tag === tag; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); });
-      $('#empty').hidden = shown !== 0;
-      $('#result-count').textContent = (tag || term) ? shown + '語が見つかりました' : '';
+      // 0語のときは下の箱で伝えるので、数は出さない
+      $('#result-count').textContent = (tag || term) && shown ? shown + '語が見つかりました' : '';
+      if (shown === 0) showMiss(q.value.trim(), term); else { $('#empty').hidden = true; $('#empty').classList.remove('show'); }
+      paintHits(term);
     };
+
+    // 見つけた文字に印を付ける（CSS Custom Highlight API。対応していないブラウザでは印が出ないだけ）
+    var canHL = window.CSS && CSS.highlights && typeof Highlight === 'function';
+    var paintHits = function (term) {
+      if (!canHL) return;
+      if (!term) { CSS.highlights.delete('hit'); return; }
+      var hl = new Highlight();
+      $$('.wc:not([hidden])', list).forEach(function (c) {
+        $$('.wc-reading, .wc-word, .wc-catch, .wc-tags i', c).forEach(function (el) {
+          var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), node;
+          while ((node = walker.nextNode())) {
+            var t = norm(node.data), from = 0, k;
+            while ((k = t.indexOf(term, from)) !== -1) {
+              var r = new Range(); r.setStart(node, k); r.setEnd(node, k + term.length); hl.add(r); from = k + term.length;
+            }
+          }
+        });
+      });
+      CSS.highlights.set('hit', hl);
+    };
+    // 見つからないとき：取り上げてほしい言葉としてフォームで送る導線と、読みが近い言葉
+    var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var bigrams = function (s) { var a = []; for (var i = 0; i < s.length - 1; i++) a.push(s.substr(i, 2)); return a; };
+    var dice = function (a, b) {
+      if (!a.length || !b.length) return 0;
+      var m = 0, bb = b.slice();
+      a.forEach(function (x) { var k = bb.indexOf(x); if (k >= 0) { m++; bb.splice(k, 1); } });
+      return 2 * m / (a.length + b.length);
+    };
+    var showMiss = function (raw, term) {
+      var box = $('#empty');
+      var lead = $('.nofind-lead', box), act = $('.nofind-act', box), title = $('.nofind-near-title', box);
+      var near = [];
+      if (tag) {
+        // タグで絞り込んだ中で見つからないとき
+        lead.textContent = '「' + raw + '」は、このタグの中には見つかりませんでした。';
+        act.hidden = true; title.textContent = 'タグを外して探す';
+        $('.nofind-near', box).innerHTML = '<a href="/#words" data-untag>すべての言葉から探す</a>';
+      } else {
+        lead.textContent = '「' + raw + '」は、まだ収録していません。取り上げてほしい言葉として送れます。';
+        act.hidden = false; title.textContent = '読みが近い言葉';
+        $('.nofind-form', box).href = box.dataset.form + encodeURIComponent('収録の希望：' + raw);
+        var all = $$('.wc', list).map(function (c) { return { word: $('.wc-word', c).textContent, kana: c.dataset.kana, href: c.getAttribute('href') }; })
+          .sort(function (a, b) { return a.kana.localeCompare(b.kana, 'ja'); });
+        var qa = bigrams(term);
+        near = all.map(function (w) {
+          var r = w.kana, sc = Math.max(dice(qa, bigrams(r)), dice(qa, bigrams(norm(w.word))));
+          var p = 0; while (p < term.length && p < r.length && term[p] === r[p]) p++;
+          return { w: w, s: sc + p * 0.2 };
+        }).filter(function (x) { return x.s >= 0.2; }).sort(function (a, b) { return b.s - a.s; }).slice(0, 3).map(function (x) { return x.w; });
+        if (near.length < 2) {
+          var pos = 0; while (pos < all.length && all[pos].kana.localeCompare(term, 'ja') < 0) pos++;
+          [all[pos - 1], all[pos], all[pos - 2], all[pos + 1]].forEach(function (w) { if (w && near.length < 3 && near.indexOf(w) === -1) near.push(w); });
+        }
+        $('.nofind-near', box).innerHTML = near.map(function (w) {
+          return '<a href="' + esc(w.href) + '">' + esc(w.word) + (norm(w.word) === w.kana ? '' : '<span>' + esc(w.kana) + '</span>') + '</a>';
+        }).join('');
+      }
+      var wasHidden = box.hidden;
+      box.hidden = false;
+      if (wasHidden) { box.classList.remove('show'); void box.offsetWidth; box.classList.add('show'); }
+    };
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-untag]');
+      if (!a) return;
+      e.preventDefault();
+      var allChip = $('.chip[data-tag=""]'); if (allChip) allChip.click();
+    });
+    // 「/」キーで検索窓へ（入力欄に文字を打っているときと、修飾キーを押しているときは効かせない）
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t.closest && t.closest('input, textarea, select, [contenteditable="true"]')) return;
+      e.preventDefault(); q.focus(); q.select();
+    });
+    q.addEventListener('keydown', function (e) { if (e.key === 'Escape' && q.value) { q.value = ''; ensureAll(function () { applySort(); filter(); }); } });
 
     $$('.sort-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -189,21 +267,6 @@
     });
   }
 
-  // ふわっと出す
-  // 画面の下にあるものだけ隠し、スクロールで位置に来たら出す
-  if (!reduce) {
-    var fades = $$('.wc, .panel, .umap-item, .mis');
-    fades.forEach(function (el) { if (el.getBoundingClientRect().top > innerHeight) el.classList.add('fade'); });
-    var check = function () {
-      fades.forEach(function (el) {
-        if (el.classList.contains('fade') && el.getBoundingClientRect().top < innerHeight * 0.95) el.classList.add('in');
-      });
-    };
-    addEventListener('scroll', check, { passive: true });
-    addEventListener('resize', check);
-    addEventListener('hashchange', function () { setTimeout(check, 50); });
-  }
-
   // あなたはどの意味派？
   var POLL_MSG = {
     '原義': ['もともとの意味派', 'この言葉が生まれたときの意味で使っています。いまは少数派かもしれませんが、出典に一番近い使い方です。'],
@@ -240,6 +303,19 @@
             ? '「' + word + '」、知らなかった。回答した人の' + mine + '%も知らなかったらしい'
             : '私の「' + word + '」は「' + b.dataset.label + '」派。回答した人の' + mine + '%が同じでした。あなたはどの意味で使ってる？';
         }
+        // シェアすると出る画像を、写真のように見せる（選んだときに1枚だけ読み込む。読み込めなければ出さない）
+        if (b.dataset.og) {
+          var fig = document.createElement('figure');
+          fig.className = 'pr-og';
+          fig.innerHTML = '<figcaption>この画像つきでシェアされます</figcaption>';
+          var img = document.createElement('img');
+          img.className = 'pr-photo'; img.width = 1200; img.height = 630; img.decoding = 'async';
+          img.alt = 'シェアされる画像：' + (b.dataset.type === 'none' ? '「' + word + '」を知らなかった派' : '私の「' + word + '」は「' + b.dataset.label + '」派');
+          img.addEventListener('error', function () { fig.remove(); });
+          img.src = b.dataset.og;
+          fig.appendChild(img);
+          res.appendChild(fig);
+        }
         var sh = document.createElement('div');
         // シェアするURLは、結果の画像が出る専用ページにする
         sh.className = 'share'; sh.dataset.text = text; sh.dataset.url = poll.dataset.url + 'ha/' + b.dataset.i + '/';
@@ -248,6 +324,8 @@
         sh.innerHTML = '<span class="share-label">結果をシェア</span>' + (tpl ? $$('.sbtn', tpl).map(function (x) { return x.outerHTML; }).join('') : '');
         res.appendChild(sh);
         res.hidden = false;
+        // チェックが描かれ、判子が押される動きを、押すたびに最初から
+        [b, res].forEach(function (el) { el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); });
       });
     });
   });
@@ -262,5 +340,322 @@
       });
     });
   });
+
+
+  // ===== 2026-11-15 レベルアップ =====
+
+  // 曖昧メーター：画面に入ったら目盛りを点け、数字を0から数え上げる
+  var meters = $('.mbars');
+  if (meters && !reduce && 'IntersectionObserver' in window) {
+    var mio = new IntersectionObserver(function (es) {
+      if (!es[0].isIntersecting) return;
+      mio.disconnect();
+      $$('.mbar', meters).forEach(function (bar) {
+        var v = $('.mbar-v', bar), cells = $$('.mbar-cells i.on', bar);
+        if (!v || !cells.length) return;
+        v.textContent = '0';
+        cells.forEach(function (cell, i) {
+          cell.addEventListener('animationstart', function on(e) {
+            if (e.animationName !== 'cell-on') return;
+            cell.removeEventListener('animationstart', on);
+            v.textContent = String(i + 1);
+          });
+        });
+      });
+      meters.classList.add('play');
+      // 動きが止まる環境でも、最後の数字にそろえる
+      setTimeout(function () { $$('.mbar-v', meters).forEach(function (v) { v.textContent = v.dataset.v; }); }, 2000);
+    }, { threshold: 0.4 });
+    mio.observe(meters);
+  }
+
+  // トップの絵：数秒ごとに別の言葉へ（見えている間だけ。マウスを乗せている間は止める）
+  var scene = $('.scene');
+  if (scene && !reduce) {
+    var pairs = [];
+    try { pairs = JSON.parse(scene.dataset.pairs || '[]'); } catch (e) { pairs = []; }
+    if (pairs.length > 1) {
+      var si = 0, stimer = null, svisible = false, shover = false;
+      var fillSide = function (side, u) {
+        var t = $('.scene-' + side + ' .poll-tag', scene);
+        t.className = 'poll-tag ' + u[0]; t.textContent = u[1];
+        $('.scene-' + side + ' .scene-label', scene).textContent = u[2];
+      };
+      var renderPair = function (i) {
+        var pr = pairs[i];
+        fillSide('l', pr.a); fillSide('r', pr.b);
+        $('.scene-say b', scene).textContent = pr.say;
+        $('.scene-word', scene).textContent = pr.word;
+        $('.scene-go', scene).href = '/words/' + pr.slug + '/';
+        $('.scene-mini-emo', scene).src = '/assets/emoji/' + pr.emoji + '.png';
+        $$('.scene-pager i', scene).forEach(function (d, k) { d.classList.toggle('on', k === i); });
+      };
+      var nextPair = function () {
+        if (shover || !svisible || document.hidden) return;
+        scene.classList.remove('enter'); scene.classList.add('leave');
+        setTimeout(function () {
+          si = (si + 1) % pairs.length;
+          renderPair(si);
+          scene.classList.remove('leave'); void scene.offsetWidth; scene.classList.add('enter');
+        }, 170);
+      };
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) {
+          svisible = es[0].isIntersecting;
+          clearInterval(stimer);
+          if (svisible) stimer = setInterval(nextPair, 3500);
+        }, { threshold: 0.4 }).observe(scene);
+      }
+      scene.addEventListener('mouseenter', function () { shover = true; });
+      scene.addEventListener('mouseleave', function () { shover = false; });
+      scene.addEventListener('focusin', function () { shover = true; });
+      scene.addEventListener('focusout', function () { shover = false; });
+    }
+  }
+
+  // カードから単語ページへ、見出し語がつながって移る（View Transitions。名前は押したカードの語にだけ付ける）
+  var vtName = function (el) { if (el) el.style.viewTransitionName = 'vt-word'; };
+  var wordOf = function (path) { var m = /^\/words\/([^/]+)\/$/.exec(path); return m && m[1]; };
+  window.addEventListener('pageswap', function (e) {
+    if (!e.viewTransition || !e.activation || !e.activation.entry) return;
+    var to = new URL(e.activation.entry.url);
+    var slug = wordOf(to.pathname);
+    var here = wordOf(location.pathname);
+    if (here && !slug) vtName($('.whero-word .fit'));                     // 単語ページ → 一覧
+    else if (slug) vtName($('.wc[href="/words/' + slug + '/"] .fit'));   // 一覧 → 単語ページ
+  });
+  window.addEventListener('pagereveal', function (e) {
+    if (!e.viewTransition) return;
+    var from = window.navigation && navigation.activation && navigation.activation.from;
+    var fromSlug = from && from.url ? wordOf(new URL(from.url).pathname) : null;
+    var el = wordOf(location.pathname) ? $('.whero-word .fit') : (fromSlug && $('.wc[href="/words/' + fromSlug + '/"] .fit'));
+    if (!el) return;
+    vtName(el);
+    e.viewTransition.finished.then(function () { el.style.viewTransitionName = ''; }, function () { el.style.viewTransitionName = ''; });
+  });
+
+  // 本文に出てくる収録語：指を乗せる（タップ・フォーカス）と、意味のカードを出す
+  var terms = $$('.term');
+  if (terms.length && typeof HTMLElement.prototype.showPopover === 'function') {
+    var pop = document.createElement('div');
+    pop.className = 'term-pop';
+    pop.setAttribute('popover', 'manual');
+    pop.setAttribute('role', 'dialog');
+    document.body.appendChild(pop);
+    var cur = null, showT = 0, hideT = 0, wasOpen = false, lastType = 'mouse', skipFocus = false;
+    var isOpen = function () { return pop.matches(':popover-open'); };
+    var escT = function (x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+    var fillPop = function (t) {
+      var d = t.dataset;
+      pop.setAttribute('aria-label', d.word + 'の要約');
+      pop.innerHTML = '<div class="term-card"><div class="term-top"><span class="term-circle"><img src="/assets/emoji/' + escT(d.emoji) + '.png" alt="" width="32" height="32"></span>' +
+        '<div><p class="term-yomi">' + escT(d.yomi) + '</p><p class="term-word">' + escT(d.word) + '</p></div></div>' +
+        '<p class="term-catch">『' + escT(d.catch) + '』</p>' +
+        '<p class="term-amb"><span>曖昧度</span><b style="--v:' + escT(d.amb) + '"></b><em>' + escT(d.amb) + '</em></p>' +
+        '<a class="term-go" href="' + escT(t.getAttribute('href')) + '">ページを読む →</a></div>';
+    };
+    var place = function (t) {
+      var r = t.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+      var x = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, innerWidth - w - 8));
+      var y = r.bottom + 8;
+      if (y + h > innerHeight - 8 && r.top - h - 8 > 8) y = r.top - h - 8;
+      pop.style.left = Math.round(x) + 'px'; pop.style.top = Math.round(y) + 'px';
+    };
+    var showPop = function (t) {
+      clearTimeout(hideT);
+      if (cur === t && isOpen()) return;
+      if (cur) cur.setAttribute('aria-expanded', 'false');
+      cur = t; fillPop(t);
+      t.setAttribute('aria-expanded', 'true');
+      pop.classList.remove('in');
+      if (!isOpen()) pop.showPopover();
+      place(t);
+      void pop.offsetWidth; pop.classList.add('in');
+    };
+    var hidePop = function () {
+      clearTimeout(showT); clearTimeout(hideT);
+      if (isOpen()) pop.hidePopover();
+      if (cur) cur.setAttribute('aria-expanded', 'false');
+      cur = null;
+    };
+    terms.forEach(function (t) {
+      t.setAttribute('aria-haspopup', 'dialog');
+      t.setAttribute('aria-expanded', 'false');
+      t.addEventListener('pointerdown', function (e) { lastType = e.pointerType || 'mouse'; wasOpen = cur === t && isOpen(); });
+      t.addEventListener('pointerenter', function (e) { if (e.pointerType !== 'mouse') return; clearTimeout(hideT); showT = setTimeout(function () { showPop(t); }, 120); });
+      t.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'mouse') return; clearTimeout(showT); hideT = setTimeout(hidePop, 250); });
+      t.addEventListener('focus', function () { if (!skipFocus) showPop(t); });
+      t.addEventListener('blur', function () { hideT = setTimeout(function () { if (!pop.contains(document.activeElement)) hidePop(); }, 150); });
+      // スマホ：1回目のタップでカード、もう一度タップでページへ
+      t.addEventListener('click', function (e) {
+        var touch = e.detail !== 0 && lastType !== 'mouse';
+        if (touch && !wasOpen) { e.preventDefault(); showPop(t); }
+        wasOpen = false;
+      });
+    });
+    pop.addEventListener('pointerenter', function () { clearTimeout(hideT); });
+    pop.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') hideT = setTimeout(hidePop, 250); });
+    pop.addEventListener('focusout', function () { hideT = setTimeout(function () { if (!pop.contains(document.activeElement) && terms.indexOf(document.activeElement) < 0) hidePop(); }, 150); });
+    document.addEventListener('pointerdown', function (e) { if (isOpen() && !pop.contains(e.target) && terms.indexOf(e.target) < 0) hidePop(); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isOpen()) { var t = cur; hidePop(); if (t) { skipFocus = true; t.focus({ preventScroll: true }); skipFocus = false; } } });
+    addEventListener('scroll', function () { if (cur && isOpen()) place(cur); }, { passive: true, capture: true });
+    addEventListener('resize', function () { if (cur && isOpen()) place(cur); });
+  }
+
+  // 辞書をめくるように：← → キーで前後の言葉へ（入力欄・タブにいるときと、修飾キーを押しているときは効かせない）
+  var hs = $('.hashira');
+  if (hs) {
+    document.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      var t = e.target;
+      if (t.closest && t.closest('input, textarea, select, [contenteditable="true"], [role="tab"], .mtoc')) return;
+      var a = $(e.key === 'ArrowLeft' ? '.hs-prev' : '.hs-next', hs);
+      if (a) location.href = a.href;
+    });
+  }
+
+  // 気になった一文を選ぶと、その文ごとシェアできる（URL にテキストフラグメントを付け、開いた人にその文の印が出る）
+  var article = $('article.word');
+  if (article) {
+    var bodyParas = function (p) { return p && p.closest('.wmain') && p.closest('.wsec, .tldr, .gloss') && !p.closest('.wsec-poll, .srcs, .fixlink, .endcta'); };
+    var bar = document.createElement('div');
+    bar.className = 'pickbar'; bar.hidden = true;
+    bar.innerHTML = '<button type="button" class="sbtn sx" data-pick="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>この一文をポスト</button>' +
+      '<button type="button" class="sbtn sc" data-pick="copy">コピー</button>';
+    document.body.appendChild(bar);
+    var canPickHL = window.CSS && CSS.highlights && typeof Highlight === 'function';
+    var coarse = matchMedia('(pointer: coarse)').matches;
+    var picked = null, ptimer = 0, phide = 0;
+    var offsetIn = function (p, node, off) { var r = document.createRange(); r.selectNodeContents(p); r.setEnd(node, off); return r.toString().length; };
+    var rangeOf = function (p, a, b2) {
+      var r = document.createRange(), walk = document.createTreeWalker(p, NodeFilter.SHOW_TEXT), n, pos = 0, setA = false;
+      while ((n = walk.nextNode())) {
+        var len = n.data.length;
+        if (!setA && a <= pos + len) { r.setStart(n, a - pos); setA = true; }
+        if (setA && b2 <= pos + len) { r.setEnd(n, b2 - pos); return r; }
+        pos += len;
+      }
+      r.setEnd(p, p.childNodes.length); return r;
+    };
+    // 途中までしか選んでいなくても、句点から句点までの一文に広げる
+    var sentence = function (p, st, en) {
+      var t = p.textContent, END = '。！？', CLOSE = '」』）';
+      var a = st; while (a > 0 && END.indexOf(t[a - 1]) < 0) a--;
+      while (a < t.length && /\s/.test(t[a])) a++;
+      var b2 = Math.max(en, a + 1);
+      if (END.indexOf(t[b2 - 1]) < 0) { while (b2 < t.length && END.indexOf(t[b2 - 1]) < 0) b2++; }
+      while (b2 < t.length && CLOSE.indexOf(t[b2]) >= 0) b2++;
+      return { p: p, a: a, b: b2, text: t.slice(a, b2).trim() };
+    };
+    var encF = function (x) { return encodeURIComponent(x).replace(/-/g, '%2D'); };
+    var fragment = function (text) {
+      if (text.length > 80) {
+        var i = text.indexOf('、'), j = text.lastIndexOf('、');
+        if (i > 0 && j > i) return '#:~:text=' + encF(text.slice(0, i)) + ',' + encF(text.slice(j + 1));
+      }
+      return '#:~:text=' + encF(text);
+    };
+    var hideBar = function () { bar.hidden = true; bar.classList.remove('in'); if (canPickHL) CSS.highlights.delete('pick'); };
+    var placeBar = function (range) {
+      var rs = range.getClientRects(), first = rs[0] || range.getBoundingClientRect(), last = rs[rs.length - 1] || first;
+      var wasHidden = bar.hidden;
+      bar.hidden = false;
+      var w = bar.offsetWidth, h = bar.offsetHeight;
+      // iPhone などでは選んだ文の上に OS のメニューが出るので、下に出す
+      var down = coarse || first.top < h + 80;
+      var anchor = down ? last : first;
+      var cx = anchor.left + anchor.width / 2;
+      var x = Math.max(8, Math.min(cx - w / 2, document.documentElement.clientWidth - w - 8));
+      var y = down ? anchor.bottom + 12 : first.top - h - 12;
+      bar.style.left = Math.round(x + scrollX) + 'px';
+      bar.style.top = Math.round(y + scrollY) + 'px';
+      bar.style.setProperty('--tip', Math.round(Math.max(20, Math.min(cx - x, w - 20))) + 'px');
+      bar.classList.toggle('down', down); bar.classList.toggle('up', !down);
+      if (wasHidden) { bar.classList.remove('in'); void bar.offsetWidth; bar.classList.add('in'); }
+    };
+    var checkSel = function () {
+      var sel = getSelection();
+      if (!sel || !sel.rangeCount || sel.isCollapsed) { clearTimeout(phide); phide = setTimeout(hideBar, 250); return; }
+      var r = sel.getRangeAt(0);
+      var sp = r.startContainer.nodeType === 1 ? r.startContainer : r.startContainer.parentNode;
+      var p = sp.closest && sp.closest('p, li');
+      if (!bodyParas(p)) { hideBar(); return; }
+      clearTimeout(phide);
+      var st = offsetIn(p, r.startContainer, r.startOffset);
+      var en = p.contains(r.endContainer) ? offsetIn(p, r.endContainer, r.endOffset) : p.textContent.length;
+      if (en - st < 2) { hideBar(); return; }
+      picked = sentence(p, st, en);
+      var whole = rangeOf(p, picked.a, picked.b);
+      if (canPickHL) CSS.highlights.set('pick', new Highlight(whole));
+      placeBar(whole);
+    };
+    document.addEventListener('selectionchange', function () { clearTimeout(ptimer); ptimer = setTimeout(checkSel, 180); });
+    bar.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    var compose = function () {
+      if (!picked) return null;
+      var text = picked.text.length > 100 ? picked.text.slice(0, 99) + '…' : picked.text;
+      var site = document.title.split('｜').pop();
+      return { post: '『' + text + '』— ' + article.dataset.word + '｜' + site, url: article.dataset.url + fragment(picked.text) };
+    };
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-pick]');
+      var c = b && compose();
+      if (!c) return;
+      if (b.dataset.pick === 'x') {
+        window.open('https://x.com/intent/post?text=' + encodeURIComponent(c.post) + '&url=' + encodeURIComponent(c.url), '_blank', 'noopener,width=600,height=500');
+        track('share/quote' + location.pathname, '一文シェア：x');
+      } else {
+        var s2 = c.post + ' ' + c.url;
+        var done = function () { toast('この一文をコピーしました'); };
+        if (navigator.clipboard) navigator.clipboard.writeText(s2).then(done, function () { prompt('コピーしてください', s2); });
+        else prompt('コピーしてください', s2);
+        track('share/quote-copy' + location.pathname, '一文シェア：コピー');
+      }
+    });
+  }
+
+  // 単語ページの目次：いま読んでいる項目に印。右の目次は印がすべり、スマホの横の目次は自動で横に送る
+  var wtoc = $('.wtoc'), mtoc = $('.mtoc');
+  if (wtoc || mtoc) {
+    var ids = $$('a', wtoc || mtoc).map(function (a) { return a.getAttribute('href').slice(1); });
+    var secs = ids.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var ind = null;
+    if (wtoc) {
+      ind = document.createElement('i'); ind.className = 'wtoc-ind'; ind.setAttribute('aria-hidden', 'true');
+      wtoc.appendChild(ind); wtoc.classList.add('live');
+    }
+    var curId = null;
+    var moveInd = function () {
+      var a = wtoc && $('a.on', wtoc);
+      if (a && ind) ind.style.transform = 'translateY(' + a.offsetTop + 'px) scaleY(' + a.offsetHeight + ')';
+    };
+    var pickSec = function () {
+      var y = innerHeight * 0.3, id = secs[0].id;
+      secs.forEach(function (s3) { if (s3.getBoundingClientRect().top <= y) id = s3.id; });
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) id = secs[secs.length - 1].id;
+      return id;
+    };
+    var updateToc = function (force) {
+      if (!secs.length) return;
+      var id = pickSec();
+      if (id === curId && !force) return;
+      curId = id;
+      $$('.wtoc a, .mtoc a').forEach(function (a) {
+        var on = a.getAttribute('href') === '#' + id;
+        a.classList.toggle('on', on);
+        if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+      });
+      moveInd();
+      if (mtoc && mtoc.offsetParent) {
+        var m = $('a.on', mtoc);
+        if (m) mtoc.scrollTo({ left: m.offsetLeft - (mtoc.clientWidth - m.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
+      }
+    };
+    var tick = false;
+    addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(function () { tick = false; updateToc(); }); } }, { passive: true });
+    addEventListener('resize', function () { updateToc(true); });
+    updateToc(true);
+  }
 
 })();

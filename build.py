@@ -171,6 +171,63 @@ def esc(s):
     return html.escape(str(s), quote=True)
 
 
+# ---- 見出し語の組み方（2026-11-15 採用。長い語も途中で割れないよう、字数から文字の大きさを CSS で決める） ----
+def word_parts(word):
+    """区切ってよい位置（「・」の後、助詞「は・を・が・に・で」の後に漢字が続くところ）で語を分ける"""
+    import re
+    parts = re.split(r"(?<=・)|(?<=[はをがにで])(?=[一-鿿])", word) if len(word) >= 5 else [word]
+    return [p for p in parts if p]
+
+
+def wbr_word(word):
+    return "<wbr>".join(esc(p) for p in word_parts(word))
+
+
+def fit_word(word):
+    """見出し語を <span class="fit"> で包み、区切ってよい位置に <wbr> を入れる"""
+    parts = word_parts(word)
+    style = f"--n:{len(word)}" + (f";--seg:{max(len(p) for p in parts)}" if len(parts) > 1 else "")
+    return f'<span class="fit" style="{style}">{"<wbr>".join(esc(p) for p in parts)}</span>'
+
+
+POS_SHORT = [("形容動詞", "形動"), ("感動詞", "感"), ("名詞", "名"), ("動詞", "動"), ("形容詞", "形"), ("副詞", "副"),
+             ("連語", "連語"), ("慣用句", "句"), ("ことわざ", "句"), ("四字熟語", "句"), ("故事成語", "句")]
+
+
+def pos_short(pos):
+    """辞書の語釈に出す品詞の略（例：「名詞・形容動詞（…）」→「名・形動」）"""
+    import re
+    out = []
+    for seg in pos.split("（")[0].split("・"):
+        seg = re.sub(r"「.*?」", "", seg)
+        for k, v in POS_SHORT:
+            if seg.startswith(k):
+                if v not in out:
+                    out.append(v)
+                break
+    return "・".join(out)
+
+
+def first_sentence(text):
+    t = str(text).strip().split("\n")[0]
+    i = t.find("。")
+    return t[:i + 1] if i >= 0 else t
+
+
+def kana_row(reading):
+    """読みの1字目から、五十音の行（爪）の字を決める。濁点・半濁点は区別しない"""
+    import unicodedata
+    c = unicodedata.normalize("NFD", reading[:1])[:1]
+    rows = "あかさたなはまやらわ"
+    order = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん"
+    if c in "ぁぃぅぇぉっゃゅょゎ":
+        c = chr(ord(c) + 1)
+    if c not in order:
+        return c or "#"
+    i = order.index(c)
+    return next(r for r in reversed(rows) if i >= order.index(r))
+
+
 def inline(s):
     t = esc(s.strip()).replace("\n", "<br>")
     parts = t.split("**")
@@ -193,8 +250,10 @@ def meter_bars(meters, big=False):
         v = int(meters.get(key, 0))
         cells = "".join(f'<i class="{"on" if i < v else ""}"></i>' for i in range(5))
         if big:
+            # 目盛りが順に点く動き（2026-11-15）：点く数を data-n に。曖昧度が満点のときだけ最後に揺らす
+            wob = " mbar-wobble" if key == "曖昧度" and v == 5 else ""
             rows.append(
-                f'<div class="mbar"><div class="mbar-top"><b>{key}</b><span class="mbar-num">{v}<small>/5</small></span></div>'
+                f'<div class="mbar{wob}" data-n="{v}"><div class="mbar-top"><b>{key}</b><span class="mbar-num"><span class="mbar-v" data-v="{v}">{v}</span><small>/5</small></span></div>'
                 f'<div class="mbar-cells" role="img" aria-label="{key} 5段階中{v}">{cells}</div><p>{esc(help_)}</p></div>'
             )
         else:
@@ -259,7 +318,7 @@ def page(title, desc, body, path="/", og="/og/site.png", cls="", ld=None):
 </head>
 <body class="{cls}">
 <a class="skip" href="#main">本文へ</a>
-<header class="hd"><div class="wrap hd-in">
+<header class="hd"><span class="hd-prog" aria-hidden="true"></span><div class="wrap hd-in">
 <a class="logo" href="/">{emoji(BRAND_EMOJI, "logo-emo", 28)}<span>{SITE}</span></a>
 <nav class="hd-nav" aria-label="メニュー">
 <a href="/#words">収録語</a>
@@ -372,7 +431,7 @@ def word_card(w, rec=0):
         f'data-tags="{esc("|".join(w["tags"]))}" data-search="{esc(w["word"] + w["reading"] + w["catch"] + w["oneliner"] + "".join(w["tags"]))}">'
         f'<span class="wc-circle">{emoji(w["emoji"], "wc-emo")}</span>'
         f'<span class="wc-reading">{esc(w["reading"])}</span>'
-        f'<span class="wc-word">{esc(w["word"])}</span>'
+        f'<span class="wc-word">{fit_word(w["word"])}</span>'
         f'<span class="wc-catch">{esc(w["catch"])}</span>'
         f'<span class="wc-amb"><span>曖昧度</span><b style="--v:{amb}"></b><em>{amb}</em></span>'
         f'<span class="wc-tags">{"".join(f"<i>{esc(t)}</i>" for t in w["tags"][:3])}</span>'
@@ -468,9 +527,49 @@ def note_page(n, words):
     return page(n["title"], n["lead"], body, f"/notes/{n['slug']}/", f"/og/notes/{n['slug']}.png", "notepage", ld)
 
 
+# トップの絵「同じ言葉で、頭に浮かぶ意味がちがう」に出す語（2026-11-15）。(slug, 人が言う形)。
+# 吹き出しの中身は語のデータの usages[0] と usages[1]
+HERO_PAIRS = [("kaerukagensho", "蛙化した"), ("yabai", "ヤバい"), ("kigaokenai", "気が置けない"),
+              ("kinsen", "琴線に触れた"), ("kusa", "草")]
+
+
+def hero_scene(words):
+    by = {w["slug"]: w for w in words}
+    pairs = []
+    for slug, say in HERO_PAIRS:
+        w = by.get(slug)
+        if not w or len(w["usages"]) < 2:
+            continue
+        a, b = w["usages"][0], w["usages"][1]
+        pairs.append({"slug": slug, "word": w["word"], "say": say, "emoji": w["emoji"],
+                      "a": [USAGE[a["type"]][0], USAGE[a["type"]][1], a["label"]],
+                      "b": [USAGE[b["type"]][0], USAGE[b["type"]][1], b["label"]]})
+    if not pairs:
+        return ""
+    p = pairs[0]
+    dots = "".join(f'<i class="{"on" if i == 0 else ""}"></i>' for i in range(len(pairs)))
+    data = esc(json.dumps(pairs, ensure_ascii=False))
+    return f"""<figure class="scene" data-pairs="{data}" aria-label="同じ言葉でも、人によって思い浮かべる意味がちがう例">
+<div class="scene-heads">
+<p class="scene-think scene-l"><span class="scene-think-in"><span class="poll-tag {p["a"][0]}">{esc(p["a"][1])}</span><span class="scene-label">{esc(p["a"][2])}</span></span></p>
+<p class="scene-think scene-r"><span class="scene-think-in"><span class="poll-tag {p["b"][0]}">{esc(p["b"][1])}</span><span class="scene-label">{esc(p["b"][2])}</span></span></p>
+</div>
+<div class="scene-floor" aria-hidden="true">
+<span class="scene-person scene-pl">{emoji("1f9cd", "scene-emo")}</span>
+<p class="scene-say">「<b>{esc(p["say"])}</b>」</p>
+<span class="scene-person scene-pr">{emoji("1f9cd", "scene-emo")}</span>
+</div>
+<figcaption class="scene-cap">
+<a class="scene-go" href="/words/{p["slug"]}/"><span class="scene-mini">{emoji(p["emoji"], "scene-mini-emo")}</span><span><span class="scene-word">{esc(p["word"])}</span><small>のページを読む</small></span></a>
+<span class="scene-pager" aria-hidden="true">{dots}</span>
+</figcaption>
+</figure>"""
+
+
 def index_page(words):
     # サイト名は原稿用紙のマスに1字ずつ入れる（2026-11-08 黒田さんが5案から選んだ）
-    site_html = "".join(f'<span aria-hidden="true">{c}</span>' for c in SITE)
+    # 開いたときにマスの枠が引かれ、字が1字ずつ入る（2026-11-15）。--i は字の順番
+    site_html = "".join(f'<span aria-hidden="true" style="--i:{i}"><i>{c}</i></span>' for i, c in enumerate(SITE))
     # 既定は推奨度順（recommend_order を参照）
     ordered = recommend_order(words)
     all_cards = [word_card(w, i) for i, w in enumerate(ordered)]
@@ -478,8 +577,6 @@ def index_page(words):
     cards_json = json.dumps(all_cards, ensure_ascii=False)
     import hashlib
     cards_ver = hashlib.md5(cards_json.encode()).hexdigest()[:8]
-    # ヒーローの飾りは最初に収録した3語の絵文字
-    hero_words = [w for s in ("kaerukagensho", "dopagaki", "meroi") for w in words if w["slug"] == s][:3]
     tag_count = {}
     for w in words:
         for t in w["tags"]:
@@ -492,21 +589,21 @@ def index_page(words):
     body = f"""
 <section class="hero"><div class="wrap hero-in">
 <h1 class="hero-title masu" aria-label="{SITE}">{site_html}</h1>
-<p class="hero-catch">その言葉、<br class="sp">ほんとに<em>同じ意味</em>で<br class="sp">使ってる？</p>
+<p class="hero-catch">その言葉、<br class="sp">ほんとに<em><span class="zure-a">同じ</span><span class="zure-b">意味</span></em>で<br class="sp">使ってる？</p>
 <p class="hero-lead">「蛙化した」「メロい」「ドパガキ」。よく見聞きするのに人によって意味がずれる曖昧な言葉を収録。語源や経緯など、様々な観点でまとめています。</p>
 <div class="hero-cta">
 <div class="stat"><b data-count="{len(words)}">{len(words)}</b><span>語収録</span></div>
 <button type="button" class="btn btn-main" data-random>{emoji("1f3b2", "btn-emo")}ランダムに1つ見てみる</button>
 </div>
+{hero_scene(words)}
 </div>
-<div class="hero-float" aria-hidden="true">{"".join(emoji(w["emoji"], "fl fl" + str(i)) for i, w in enumerate(hero_words))}</div>
 </section>
 
 <section class="wrap sec-block" id="words">
 <h2 class="sr">収録語</h2>
 <div class="finder">
 <div class="finder-row">
-<label class="search"><span class="sr">言葉を探す</span>{emoji("1f50d", "search-emo")}<input id="q" type="search" placeholder="言葉・読み・タグで探す" autocomplete="off"></label>
+<label class="search"><span class="sr">言葉を探す（「/」キーでここに移ります）</span>{emoji("1f50d", "search-emo")}<input id="q" type="search" placeholder="言葉・読み・タグで探す" autocomplete="off" aria-keyshortcuts="/"><kbd class="search-kbd" aria-hidden="true">/</kbd></label>
 <div class="sorter" role="group" aria-label="並び順">
 <button type="button" class="sort-btn on" data-sort="rec" aria-pressed="true">推奨度順</button>
 <button type="button" class="sort-btn" data-sort="now" aria-pressed="false">今時度順</button>
@@ -519,7 +616,12 @@ def index_page(words):
 <p class="result-count" id="result-count" aria-live="polite"></p>
 <div class="wgrid" id="wordlist" data-total="{len(all_cards)}" data-src="/cards.json?v={cards_ver}">{cards}</div>
 <div class="center"><button type="button" class="btn btn-sub more-btn" id="more" hidden>もっと見る</button></div>
-<p class="empty" id="empty" hidden>見つかりませんでした。別の言葉で探してみてください。</p>
+<div class="nofind" id="empty" data-form="{esc(FORM_URL + "?usp=pp_url&entry." + FORM_ENTRY_TARGET + "=")}" hidden>
+<span class="nofind-circle">{emoji("1f4dd", "nofind-emo")}</span>
+<p class="nofind-lead"></p>
+<p class="nofind-act"><a class="btn btn-main nofind-form" href="{esc(form_link())}" target="_blank" rel="noopener">フォームで送る</a></p>
+<div class="nofind-near-wrap"><p class="nofind-near-title">読みが近い言葉</p><div class="taglinks nofind-near"></div></div>
+</div>
 </section>
 
 {notes_block(load_notes())}
@@ -539,9 +641,116 @@ def index_page(words):
     return page(SITE, DESC, body, "/", "/og/site.png", "home", ld), cards_json
 
 
+# ---- 本文に出てくる収録語へのリンク（2026-11-15 採用） ----
+# 規則：本文の段落だけ／1ページで各語の最初の1回だけ／自分自身は除く／長い語から先に照合／
+# 2字以下の語（「神」「草」など）は取り違えやすいので「」でくくられているときだけ
+def make_linker(w, words):
+    import re
+    cands = sorted((x for x in words if x["slug"] != w["slug"]), key=lambda x: -len(x["word"]))
+    by_esc = {}
+    pats = []
+    for x in cands:
+        e = esc(x["word"])
+        by_esc[e] = x
+        pats.append("「" + re.escape(e) + "」" if len(x["word"]) <= 2 else re.escape(e))
+    if not pats:
+        return lambda h: h
+    rx = re.compile("|".join(pats))
+    used = set()
+
+    def link(x, label):
+        return (f'<a class="term" href="/words/{x["slug"]}/" data-word="{esc(x["word"])}" data-yomi="{esc(x["reading"])}" '
+                f'data-emoji="{x["emoji"]}" data-catch="{esc(x["catch"])}" data-amb="{x["meters"].get("曖昧度", 0)}">{label}</a>')
+
+    def sub(m):
+        t = m.group(0)
+        bare = t[1:-1] if t.startswith("「") and t.endswith("」") and t[1:-1] in by_esc and len(by_esc[t[1:-1]]["word"]) <= 2 else t
+        x = by_esc.get(bare)
+        if not x or x["slug"] in used:
+            return t
+        used.add(x["slug"])
+        return t.replace(bare, link(x, bare), 1)
+
+    def apply(h):
+        parts = re.split(r"(<[^>]+>)", h)
+        out, in_a = [], False
+        for part in parts:
+            if part.startswith("<"):
+                in_a = in_a or part.startswith("<a ")
+                if part == "</a>":
+                    in_a = False
+                out.append(part)
+            else:
+                out.append(part if in_a else rx.sub(sub, part))
+        return "".join(out)
+    return apply
+
+
+def gloss_block(w, slug_map):
+    """辞書の1項目のような語釈。usages の label と desc の最初の一文、related から作る"""
+    nums = "①②③④⑤⑥⑦⑧⑨⑩"
+    fuda = {"原義": ("gloss-orig", "もともとの意味"), "誤用寄り": ("gloss-mis", "出典から離れた使い方")}
+    lis = []
+    for i, u in enumerate(w["usages"]):
+        f = fuda.get(u["type"])
+        tag = f'<span class="gloss-fuda {f[0]}">{f[1]}</span>' if f else ""
+        lab = u["label"].rstrip("。") + "。"
+        lis.append(f'<li><span class="gloss-n" aria-hidden="true">{nums[i] if i < len(nums) else i + 1}</span>'
+                   f'<p>{tag}<b>{esc(lab)}</b>{esc(first_sentence(u["desc"]))}</p></li>')
+    refs = []
+    for r in w.get("related", []):
+        if r["word"] in slug_map:
+            refs.append(f'<a href="/words/{slug_map[r["word"]]}/">{esc(r["word"])}</a>')
+        else:
+            refs.append(esc(r["word"]))
+    pos = pos_short(w["pos"])
+    ref = f'<p class="gloss-ref"><span class="gloss-arrow" aria-hidden="true">→</span>{"・".join(refs)}</p>' if refs else ""
+    return (f'<section class="gloss" aria-label="辞書の語釈">'
+            f'<p class="gloss-head"><span class="gloss-yomi">{esc(w["reading"])}</span><b class="gloss-midashi">【{wbr_word(w["word"])}】</b>'
+            f'{f"""<span class="gloss-pos">〔{esc(pos)}〕</span>""" if pos else ""}</p>'
+            f'<ol class="gloss-senses">{"".join(lis)}</ol>{ref}'
+            f'<p class="gloss-sign">{emoji(BRAND_EMOJI, "gloss-sign-emo")}{SITE}</p></section>')
+
+
+def kana_order(words):
+    """トップの「五十音順」と同じ並び（濁点の有無は区別しない）"""
+    import unicodedata
+    def key(x):
+        base = "".join(c for c in unicodedata.normalize("NFD", x["reading"]) if c not in "\u3099\u309a")
+        return (base, x["reading"])
+    return sorted(words, key=key)
+
+
+def hashira(w, words):
+    """五十音順で前後の言葉へ（辞書の柱と爪）。端の語は反対の端につなぐ"""
+    order = kana_order(words)
+    i = next(k for k, x in enumerate(order) if x["slug"] == w["slug"])
+    prev, nxt = order[i - 1], order[(i + 1) % len(order)]
+    def go(x, cls, label):
+        arw = '<span class="hs-arw" aria-hidden="true">←</span>' if cls == "hs-prev" else ""
+        arw2 = '<span class="hs-arw" aria-hidden="true">→</span>' if cls == "hs-next" else ""
+        return (f'<a class="hs-go {cls}" href="/words/{x["slug"]}/" rel="{"prev" if cls == "hs-prev" else "next"}" '
+                f'aria-label="{label}：{esc(x["word"])}"><span class="hs-dir">{arw}{label}{arw2}</span>'
+                f'<span class="hs-yomi">{esc(x["reading"])}</span><b class="hs-word">{esc(x["word"])}</b>'
+                f'<span class="hs-ear" aria-hidden="true"></span></a>')
+    return (f'<nav class="hashira" aria-label="五十音順で前後の言葉">{go(prev, "hs-prev", "前の言葉")}'
+            f'<div class="hs-tsume" aria-hidden="true"><span class="hs-row">{kana_row(w["reading"])}</span>'
+            f'<span class="hs-pos">五十音順<br><b>{i + 1}</b>／{len(order)}</span></div>'
+            f'{go(nxt, "hs-next", "次の言葉")}</nav>')
+
+
+CHECK_SVG = '<svg class="poll-check" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M4.5 12.5l5 5L19.5 7"/></svg>'
+
+
 def word_page(w, words):
     slug_map = {x["word"]: x["slug"] for x in words}
     url = f"{BASE_URL}/words/{w['slug']}/"
+    link = make_linker(w, words)
+
+    def lp(text):
+        return link(paras(text))
+    # ページの上から順にリンクを付けるため、「どういう意味？」を先に作る
+    definition_html = lp(w["definition"])
     toc = []
     secs = []
 
@@ -552,32 +761,34 @@ def word_page(w, words):
     # あなたはどの意味派？
     counts = POLL.get("words", {}).get(w["slug"], {})
     opts = "".join(
-        f'<button type="button" class="poll-opt" data-i="{i}" data-type="{esc(u["type"])}" data-label="{esc(u["label"])}" data-votes="{int(counts.get(i, 0))}">'
-        f'<span class="poll-tag {USAGE[u["type"]][0]}">{esc(u["type"])}</span><span class="poll-label">{esc(u["label"])}</span></button>'
+        f'<button type="button" class="poll-opt" data-i="{i}" data-type="{esc(u["type"])}" data-label="{esc(u["label"])}" data-votes="{int(counts.get(i, 0))}" data-og="/og/r/{result_og_name(w, i, u["label"])}">'
+        f'<span class="poll-tag {USAGE[u["type"]][0]}">{esc(u["type"])}</span><span class="poll-label">{esc(u["label"])}</span>{CHECK_SVG}</button>'
         for i, _, _ in poll_choices(w)[:-1] for u in [w["usages"][int(i)]]
     )
     poll = f"""<div class="poll" data-word="{esc(w["word"])}" data-url="{esc(url)}" data-min="{POLL_MIN}">
 <p class="poll-q">あなたは「{esc(w["word"])}」を、どの意味で使っていましたか？</p>
-<div class="poll-opts">{opts}<button type="button" class="poll-opt" data-i="n" data-type="none" data-label="この言葉を知らなかった" data-votes="{int(counts.get("n", 0))}"><span class="poll-tag u-none">？</span><span class="poll-label">この言葉を知らなかった</span></button></div>
+<div class="poll-opts">{opts}<button type="button" class="poll-opt" data-i="n" data-type="none" data-label="この言葉を知らなかった" data-votes="{int(counts.get("n", 0))}" data-og="/og/r/{result_og_name(w, "n", "この言葉を知らなかった")}"><span class="poll-tag u-none">？</span><span class="poll-label">この言葉を知らなかった</span>{CHECK_SVG}</button></div>
 <div class="poll-result" hidden></div>
 </div>"""
     add("poll", "1f914", "あなたはどの意味派？", poll, "wsec-poll")
 
     # 意味の変遷
     items = "".join(
-        f'<li class="umap-item {USAGE[u["type"]][0]}"><span class="umap-tag">{esc(u["type"])}<small>{USAGE[u["type"]][1]}</small></span>'
+        f'<li class="umap-item {USAGE[u["type"]][0]}" style="--i:{min(k, 5)}"><span class="umap-tag">{esc(u["type"])}<small>{USAGE[u["type"]][1]}</small></span>'
         f'<h3>{esc(u["label"])}</h3>{paras(u["desc"])}</li>'
-        for u in w["usages"]
+        for k, u in enumerate(w["usages"])
     )
-    add("map", "1f50d", "意味の変遷", f'<p class="wsec-lead">もともとの意味から、いまの使われ方までを順に並べています。下にいくほど出典から離れます。</p><ol class="umap">{items}</ol>')
+    add("map", "1f50d", "意味の変遷", '<p class="wsec-lead">もともとの意味から、いまの使われ方までを順に並べています。下にいくほど出典から離れ、右へずれていきます。</p>'
+        '<div class="umap-wrap"><div class="umap-axis" aria-hidden="true"><span>もともとの意味</span><i></i><span>出典から離れた使い方</span></div>'
+        f'<ol class="umap">{items}</ol></div>')
 
 
-    add("etymology", "1f4d6", "語源・成り立ち", paras(w["etymology"]))
+    add("etymology", "1f4d6", "語源・成り立ち", lp(w["etymology"]))
 
-    tl = "".join(f'<li><time>{esc(t["date"])}</time><div>{paras(t["event"])}</div></li>' for t in w["timeline"])
+    tl = "".join(f'<li><time>{esc(t["date"])}</time><div>{lp(t["event"])}</div></li>' for t in w["timeline"])
     add("timeline", "1f4e3", "広まった経緯", f'<ol class="tl">{tl}</ol>')
 
-    mis = "".join(f'<div class="mis"><h3>{esc(m["title"])}</h3>{paras(m["body"])}</div>' for m in w["misuses"])
+    mis = "".join(f'<div class="mis"><h3>{esc(m["title"])}</h3>{lp(m["body"])}</div>' for m in w["misuses"])
     add("misuses", "1f440", "ズレのポイント", f'<div class="miss">{mis}</div>')
 
     tabs = "".join(
@@ -585,12 +796,12 @@ def word_page(w, words):
         for i, p in enumerate(w["perspectives"])
     )
     panels = "".join(
-        f'<div class="ppanel" role="tabpanel" data-i="{i}"{"" if i == 0 else " hidden"}><h3>{esc(p["label"])}</h3>{paras(p["body"])}</div>'
+        f'<div class="ppanel" role="tabpanel" data-i="{i}"{"" if i == 0 else " hidden"}><h3>{esc(p["label"])}</h3>{lp(p["body"])}</div>'
         for i, p in enumerate(w["perspectives"])
     )
     add("perspectives", "1f4ad", "多様な観点", f'<div class="ptabs" role="tablist">{tabs}</div><div class="ppanels">{panels}</div>')
 
-    add("who", "1f4ac", "使用シーン", paras(w["who_where"]))
+    add("who", "1f4ac", "使用シーン", lp(w["who_where"]))
 
 
     rel = []
@@ -615,14 +826,14 @@ def word_page(w, words):
     others = sorted((x for x in words if x["slug"] != w["slug"]),
                     key=lambda x: (-len(tags & set(x["tags"])), -x["meters"].get("曖昧度", 0), x["reading"]))[:6]
     body = f"""
-<article class="word">
+<article class="word" data-word="{esc(w["word"])}" data-url="{esc(url)}">
 <header class="whero"><div class="wrap whero-in">
 <p class="crumb"><a href="/">{SITE}</a><span>›</span><a href="/#words">収録語</a></p>
 <div class="whero-main">
 <span class="whero-circle">{emoji(w["emoji"], "whero-emo")}</span>
 <div>
 <p class="whero-reading">{esc(w["reading"])}<span class="pos">{esc(w["pos"])}</span></p>
-<h1 class="whero-word">{esc(w["word"])}</h1>
+<h1 class="whero-word">{fit_word(w["word"])}</h1>
 </div>
 </div>
 <p class="whero-catch">『{esc(w["catch"])}』</p>
@@ -632,6 +843,7 @@ def word_page(w, words):
 
 <div class="wrap wbody">
 <div class="wmain">
+{gloss_block(w, slug_map)}
 <section class="tldr">
 <p class="tldr-title">{emoji("1f525", "inline-emo")}30秒でわかる「{esc(w["word"])}」</p>
 <ol>{tldr}</ol>
@@ -639,13 +851,14 @@ def word_page(w, words):
 </section>
 <nav class="mtoc" aria-label="このページの目次"><a href="#meters">曖昧メーター</a><a href="#definition">どういう意味？</a>{"".join(toc)}</nav>
 <section class="wsec" id="meters"><h2 class="wsec-title">{emoji("1f3c6", "inline-emo")}曖昧メーター</h2>{meter_bars(w["meters"], big=True)}</section>
-<section class="wsec" id="definition"><h2 class="wsec-title">{emoji("1f4d6", "inline-emo")}どういう意味？</h2>{paras(w["definition"])}</section>
+<section class="wsec" id="definition"><h2 class="wsec-title">{emoji("1f4d6", "inline-emo")}どういう意味？</h2>{definition_html}</section>
 {"".join(secs)}
 <section class="endcta">
 <p class="endcta-title">まわりの人は、どの意味で使ってる？</p>
 <p>同じ言葉でも、人によって思い浮かべる意味が違います。友だちや家族に聞いてみてください。</p>
 {share_bar(share_text, url, label="このページを送る", cls="share-big")}
 </section>
+{hashira(w, words)}
 </div>
 <aside class="wside"><nav class="wtoc" aria-label="このページの目次"><p>目次</p><a href="#meters">曖昧メーター</a><a href="#definition">どういう意味？</a>{"".join(toc)}</nav></aside>
 </div>
