@@ -128,22 +128,103 @@ def site_og(words, title, sub, emoji_main=None):
     return img
 
 
-def note_og(n):
-    """曖昧ノートの共有画像"""
+def phrase_chunks(t):
+    """タイトルを、言葉の途中で折り返さないよう助詞やかっこの切れ目で区切る"""
+    out, cur, inq = [], "", False
+    for i, ch in enumerate(t):
+        if ch == "「":
+            if cur:
+                out.append(cur)
+                cur = ""
+            inq = True
+        cur += ch
+        nxt = t[i + 1] if i + 1 < len(t) else ""
+        two = t[i - 1:i + 1]
+        if ch == "」":
+            inq = False
+            continue
+        if inq:  # かっこの中では区切らない
+            continue
+        end = (ch in "のをはがにでへやもと、" and nxt not in "」、。") or two in ("から", "った", "した", "って", "よる")
+        if ch == "に" and nxt == "も":
+            end = False
+        if end:
+            out.append(cur)
+            cur = ""
+    if cur:
+        out.append(cur)
+    return out
+
+
+def phrase_wrap(d, text, f, width, max_lines):
+    """切れ目ごとに詰め、行数が少なく、行の長さがなるべくそろう分け方を選ぶ"""
+    cs, best = phrase_chunks(text), None
+
+    def rec(i, lines):
+        nonlocal best
+        if len(lines) > max_lines:
+            return
+        if i == len(cs):
+            ws = [d.textlength(x, font=f) for x in lines]
+            score = (len(lines), max(ws) - min(ws))
+            if best is None or score < best[0]:
+                best = (score, list(lines))
+            return
+        s = ""
+        for j in range(i, len(cs)):
+            s += cs[j]
+            if d.textlength(s, font=f) > width:
+                break
+            rec(j + 1, lines + [s])
+
+    rec(0, [])
+    return best[1] if best else None
+
+
+def word_pills(img, d, words, x0, y0, x1, size=30, max_rows=3):
+    """収録語を絵つきの札で並べる。入りきらない分は「ほかN語」にまとめる"""
+    f = font(FONT_HEAVY, size)
+    ph, pad, gap, es = int(size * 1.9), int(size * 0.7), 12, int(size * 1.15)
+    x, y, row = x0, y0, 1
+    for k, w in enumerate(words):
+        tw = d.textlength(w["word"], font=f) + pad * 2 + es + 8
+        if x + tw > x1:
+            row, x, y = row + 1, x0, y + ph + gap
+        rest = len(words) - k
+        more = f"ほか{rest}語"
+        mw = d.textlength(more, font=f) + pad * 2
+        if row > max_rows or (row == max_rows and rest > 1 and x + tw + gap + mw > x1):
+            if row > max_rows:  # 前の行の末尾に「ほかN語」を置ける幅はない場合
+                break
+            d.rounded_rectangle([x, y, x + mw, y + ph], radius=ph // 2, fill=(232, 238, 245))
+            d.text((x + pad, y + ph / 2), more, font=f, fill=(21, 104, 166), anchor="lm")
+            return
+        d.rounded_rectangle([x, y, x + tw, y + ph], radius=ph // 2, fill=(255, 255, 255), outline=(214, 222, 232), width=2)
+        paste_emoji(img, w["emoji"], (int(x + pad), int(y + (ph - es) / 2)), es)
+        d.text((x + pad + es + 8, y + ph / 2), w["word"], font=f, fill=INK, anchor="lm")
+        x += tw + gap
+
+
+def note_og(n, words_by_slug):
+    """曖昧ノートの共有画像。タイトルの下に収録語を札で並べる（2026-11-20 黒田さんが4案からAを選んだ）"""
     img = Image.new("RGBA", (W, H), BASE + (255,))
     d = ImageDraw.Draw(img)
-    d.ellipse([880, 90, 1140, 350], fill=BASE_YELLOW)
-    paste_emoji(img, n["emoji"], (920, 130), 180)
-    d.text((70, 70), "曖昧ノート", font=font(FONT_BOLD, 32), fill=SKY)
-    size = 64
-    while size > 40 and len(wrap(d, n["title"], font(FONT_HEAVY, size), 760)) > 3:
-        size -= 4
-    f = font(FONT_HEAVY, size)
-    y = 140
-    for line in wrap(d, n["title"], f, 760)[:4]:
-        plain_text(d, (66, y), line, f)
-        y += int(size * 1.45)
-    sky_line(d, 72, y + 6)
+    d.ellipse([960, 52, 1150, 242], fill=BASE_YELLOW)
+    paste_emoji(img, n["emoji"], (990, 82), 130)
+    d.text((70, 62), "曖昧ノート", font=font(FONT_BOLD, 30), fill=SKY)
+    for size in range(64, 38, -4):
+        f = font(FONT_HEAVY, size)
+        lines = phrase_wrap(d, n["title"], f, 860, 2)
+        if lines:
+            break
+    else:
+        lines = wrap(d, n["title"], f, 860)[:2]
+    y = 112
+    for line in lines:
+        d.text((66, y), line, font=f, fill=INK)
+        y += int(size * 1.38)
+    words = [words_by_slug[it["slug"]] for it in n.get("items", []) if it["slug"] in words_by_slug]
+    word_pills(img, d, words, 70, y + 26, W - 70, size=30, max_rows=3)
     frame(img, d)
     return img
 
@@ -203,7 +284,7 @@ def main():
     ndir.mkdir(parents=True, exist_ok=True)
     for p in sorted((ROOT / "data" / "notes").glob("*.json")):
         n = json.loads(p.read_text(encoding="utf-8"))
-        note_og(n).convert("RGB").save(ndir / f"{n['slug']}.png", optimize=True)
+        note_og(n, {w['slug']: w for w in words}).convert("RGB").save(ndir / f"{n['slug']}.png", optimize=True)
     for w in words:
         word_og(w).convert("RGB").save(OUT / f"{w['slug']}.png", optimize=True)
     site_og(words, ["その言葉、", "ほんとに同じ意味で", "使ってる？"], "流行ってるのに、意味がふわっとしてる言葉の辞典").convert("RGB").save(OUT / "site.png", optimize=True)

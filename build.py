@@ -69,6 +69,7 @@ def poll_choices(w):
     return out
 
 
+NOTE_OG_VER = 2  # 曖昧ノートの共有画像の見た目を変えたら上げる（SNSが古い画像を出し続けないよう、URLを変える）
 OG_STYLE = 2  # 2026-11-08 マーカーをやめ、語の下に空色の短い線
 
 
@@ -521,11 +522,11 @@ def note_page(n, words):
 """
     ld = {"@context": "https://schema.org", "@graph": [
         {"@type": "Article", "headline": n["title"], "description": n["lead"], "datePublished": n["date"],
-         "url": url, "image": f"{BASE_URL}/og/notes/{n['slug']}.png", "inLanguage": "ja",
+         "url": url, "image": f"{BASE_URL}/og/notes/{n['slug']}.png?v={NOTE_OG_VER}", "inLanguage": "ja",
          "author": {"@type": "Person", "name": OPERATOR[0], "url": OPERATOR[1]}},
         crumbs_ld([(SITE, "/"), ("曖昧ノート", "/notes/"), (n["title"], f"/notes/{n['slug']}/")]),
     ]}
-    return page(n["title"], n["lead"], body, f"/notes/{n['slug']}/", f"/og/notes/{n['slug']}.png", "notepage", ld)
+    return page(n["title"], n["lead"], body, f"/notes/{n['slug']}/", f"/og/notes/{n['slug']}.png?v={NOTE_OG_VER}", "notepage", ld)
 
 
 # トップの絵「同じ言葉で、頭に浮かぶ意味がちがう」に出す語（2026-11-15）。(slug, 人が言う形)。
