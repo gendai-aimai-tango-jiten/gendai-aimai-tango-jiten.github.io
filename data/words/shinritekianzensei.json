@@ -15,7 +15,7 @@
   "origin_date": "1999年（論文）",
   "peak": "2016年〜",
   "added": "2026-11-08",
-  "updated": "2026-11-08",
+  "updated": "2026-11-21",
   "meters": {"曖昧度": 4, "誤用度": 4, "通用度": 3},
   "definition": "チームの中で、質問、反対意見、失敗の報告などをしても、ばかにされたり罰せられたりしないと、メンバーが信じられている状態のことです。ハーバード・ビジネス・スクールのエイミー・エドモンドソン教授が、1999年の論文で示した概念です。\n\nGoogleが社内のチームを調べた「プロジェクト・アリストテレス」で、成果を出すチームに共通する最も重要な要素とされたことから、日本の企業にも一気に広まりました。\n\nところが、**「優しい職場」「怒られない雰囲気」「仲がいいチーム」**のことだと受け取られることが多く、厳しいことを言わない「ぬるま湯」と混同されがちです。本来は、言いにくいことでも率直に言い合える状態を指します。",
   "usages": [
@@ -47,6 +47,7 @@
     {"word": "ウェルビーイング", "note": "心身ともに満たされた状態。働きやすさの文脈で並べて語られる。"}
   ],
   "sources": [
+    {"title": "心理的安全性がMCプロセスに与える影響を検証するための仮説設定（梨羽雅、明治大学学術成果リポジトリ）", "url": "https://meiji.repo.nii.ac.jp/record/9515/files/keieigakuronshu_57_85.pdf"},
     {"title": "心理的安全性とは？ ぬるま湯組織との違い（カオナビ）", "url": "https://www.kaonavi.jp/dictionary/psychological-safety/"},
     {"title": "心理的安全性とは（Asana）", "url": "https://asana.com/ja/resources/psychological-safety"},
     {"title": "心理的安全性についての記事（マイナビニュース TECH+）", "url": "https://news.mynavi.jp/techplus/article/enterpriseit-newtrend-52/"}
