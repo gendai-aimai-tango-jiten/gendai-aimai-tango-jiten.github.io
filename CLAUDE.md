@@ -13,7 +13,7 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 
 1. 1語＝1ファイル（data/words/<slug>.json）。書き方は notes/_guide.md、次に書く候補は notes/queue.md。
 2. `python3 build.py` で docs/ に静的HTMLを作る（標準ライブラリだけ）。CSSとJSのURLには中身のハッシュを付け、古いファイルが残らないようにしている。
-3. `python3 tools/make_og.py` で共有画像（docs/og/*.png）を作る（Pillow と macOS のヒラギノ角ゴシックが必要）。
+3. `python3 tools/make_og.py` で共有画像（docs/og/*.png）を作る（Pillow と macOS のヒラギノ角ゴシックが必要。サイト全体の画像だけは Noto Sans CJK）。そのあと build.py をもう一度動かす（サイト全体の画像の版の印のため）。
 4. docs/ をコミットして push すると、GitHub Pages（main の /docs）が公開する。ビルドは GitHub 側では行わない。
 
 ## 道具
@@ -22,7 +22,7 @@ SNSで「面白いサイトだ」と広まり、多くの人に読まれるこ�
 |---|---|
 | tools/fetch_emoji.py | 語と曖昧ノートの emoji に使う Noto Emoji の画像（128px と 512px）を取ってくる |
 | tools/check_words.py | 語のデータの点検。`--links` で出典のURLも開く（`--only slug1,slug2` でその語の出典だけ）。自動のアクセスを断るサイトは config/linkcheck.json の refusing_hosts に入れて除外する。確かな情報源（config/trusted_sources.json）がない語を知らせ、`--strict-sources` で問題として数える。曖昧ノートが収録済みの語だけを使っているかも見る |
-| tools/make_og.py | 共有画像を作る。語ごと（docs/og/<slug>.png）、意味派の結果（docs/og/r/、名前が変わったものだけ作り直す）、曖昧ノート（docs/og/notes/。タイトルの下に収録語を絵つきの札で並べる。2026-11-20 に4案から選んだ。見た目を変えたら build.py の NOTE_OG_VER を上げ、SNSに古い画像が残らないようにする） |
+| tools/make_og.py | 共有画像を作る。語ごと（docs/og/<slug>.png）、意味派の結果（docs/og/r/、名前が変わったものだけ作り直す）、曖昧ノート（docs/og/notes/。タイトルの下に収録語を絵つきの札で並べる。2026-11-20 に4案から選んだ。見た目を変えたら build.py の NOTE_OG_VER を上げ、SNSに古い画像が残らないようにする）。サイト全体（docs/og/site.png）は、収録語の「絵と言葉」のカードを敷き詰め、まん中の白い箱に🤔・原稿用紙のマスのサイト名・副題（2026-11-23 に黒田さんが3案から案Cを選んだ。見本 https://claude.ai/artifact/FQqXgLxrqeVRxdFUt8N9np 。コミュニティ図鑑の共有画像と同じ形。件数は入れない。書体は Noto Sans CJK で、初回に tools/fonts/ へ取ってくる。戻し先のタグ jiten-before-site-ogp-2026-11-23）。og:image には build.py が画像の中身から ?v= の版の印を付けるので、画像を変えたら make_og.py のあとに build.py をもう一度動かす。`--note-cover 出力先.png` で同じ形の note の見出し画像（1280×670）を作る |
 | tools/fetch_stats.py | GoatCounter の API から辞典の数字を集め、data/poll.json（意味派の回答数）と data/stats.json（語ごとの閲覧数・シェア数、全体の閲覧数、流入元の上位、収録していない検索語）に書く。GitHub の Secret「GOATCOUNTER_TOKEN」が要る。トークンはこの Secret にだけ置く（黒田さんの判断で、Mac のキーチェーンには置かない）。リポジトリは公開なので、書くのはまとめた数字だけ。検索語は2回以上・20字以内で、メールアドレスや長い数字を含まないものに絞る |
 | .github/workflows/stats.yml | 毎週月曜 6:00 に fetch_stats.py を動かし、変わっていればサイトを作り直して push する |
 | tools/pick_share.py | 次にシェアする語の候補を出す。推奨度と直近7日の読まれ方を半分ずつ |
