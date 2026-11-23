@@ -105,26 +105,68 @@ def word_og(w):
     return img
 
 
-def site_og(words, title, sub, emoji_main=None):
-    img = Image.new("RGBA", (W, H), BASE + (255,))
+NOTO_URL = "https://github.com/notofonts/noto-cjk/raw/main/Sans/OTF/Japanese/%s"
+FONTS = ROOT / "tools" / "fonts"  # Noto Sans CJK を初回に取ってくる（リポジトリには入れない）
+
+
+def noto(kind, size):
+    name = {"bold": "NotoSansCJKjp-Bold.otf", "medium": "NotoSansCJKjp-Medium.otf"}[kind]
+    p = FONTS / name
+    if not p.exists():
+        import urllib.request
+        FONTS.mkdir(parents=True, exist_ok=True)
+        print(f"書体をダウンロードします: {name}", file=sys.stderr)
+        urllib.request.urlretrieve(NOTO_URL % name, p)
+    return ImageFont.truetype(str(p), int(size))
+
+
+def site_og(words, name="現代曖昧単語辞典", sub="流行ってるのに、意味がふわっとしてる言葉の辞典", w=W, h=H):
+    """サイト全体の共有画像。収録語の「絵と言葉」のカードをレンガ積みに敷き詰め、まん中の白い箱に🤔と、
+    原稿用紙のマスに1字ずつ入れたサイト名と副題を置く（2026-11-23 黒田さんが3案から案Cを選んだ。
+    コミュニティ図鑑の共有画像と同じ形。戻し先のタグ jiten-before-site-ogp-2026-11-23）。
+    w, h を 1280×670 にすると note の見出し画像になる。件数は毎日変わるので入れない。"""
+    import random
+    from PIL import ImageFilter
+    s = w / 1200
+    items = [x for x in words if len(x["word"]) <= 9 and (EMOJI / f"{x['emoji']}.png").exists()]
+    random.Random(3).shuffle(items)
+    img = Image.new("RGBA", (w, h), (238, 242, 246, 255))
     d = ImageDraw.Draw(img)
-    cps = [w["emoji"] for w in words][:3]
-    spots = [((880, 70), 200), ((1010, 290), 140), ((820, 320), 120)]
-    if emoji_main:
-        d.ellipse([820, 70, 1140, 390], fill=BASE_YELLOW)
-        paste_emoji(img, emoji_main, (870, 120), 220)
-    else:
-        for cp, (xy, s) in zip(cps, spots):
-            d.ellipse([xy[0] - 16, xy[1] - 16, xy[0] + s + 16, xy[1] + s + 16], fill=BASE_YELLOW)
-            paste_emoji(img, cp, xy, s)
-    d.text((70, 80), sub, font=font(FONT_BOLD, 30), fill=SKY)
-    f = font(FONT_HEAVY, 76)
-    y = 140
-    for line in title:
-        plain_text(d, (66, y), line, f)
-        y += 108
-    sky_line(d, 72, y + 8)
-    frame(img, d)
+    f = noto("bold", 23 * s)
+    es, ch, gap = int(34 * s), int(68 * s), 13
+    k = 0
+    for r in range(int(h // (ch + gap)) + 2):
+        x = -int(40 * s) - int(70 * s) * (r % 3)
+        y = r * (ch + gap) - int(22 * s)
+        while x < w:
+            it = items[k % len(items)]
+            k += 1
+            cw = int(d.textlength(it["word"], font=f) + es + 46 * s)
+            d.rounded_rectangle((x, y, x + cw, y + ch), radius=int(12 * s), fill=(255, 255, 255), outline=(214, 222, 232), width=max(2, int(2 * s)))
+            paste_emoji(img, it["emoji"], (int(x + 16 * s), int(y + 17 * s)), es)
+            d.text((x + 26 * s + es, y + 43 * s), it["word"], font=f, fill=(74, 79, 87), anchor="ls")
+            x += cw + gap
+    # まん中の白い箱（ぼかした影つき）
+    box = (int(188 * s), int(132 * s), w - int(188 * s), h - int(132 * s))
+    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).rounded_rectangle((box[0] + 6 * s, box[1] + 12 * s, box[2] + 6 * s, box[3] + 12 * s), radius=int(30 * s), fill=(20, 40, 70, 60))
+    veil = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    ImageDraw.Draw(veil).rounded_rectangle(box, radius=int(30 * s), fill=(255, 255, 255, 250))
+    img.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(18 * s)))
+    img.alpha_composite(veil)
+    d = ImageDraw.Draw(img)
+    u = (box[3] - box[1]) / 366
+    top = box[1]
+    paste_emoji(img, "1f914", (int(w / 2 - 35 * u), int(top + 30 * u)), int(70 * u))
+    m = int(84 * u)
+    x0 = int(w / 2 - m * len(name) / 2)
+    y0 = int(top + 122 * u)
+    mf = noto("bold", 60 * u)
+    for i, c in enumerate(name):  # トップのサイト名と同じ原稿用紙のマス（線は --masu-line）
+        x = x0 + i * (m - 1)
+        d.rectangle((x, y0, x + m, y0 + m), fill=(255, 255, 255), outline=(169, 203, 230), width=max(2, int(2 * u)))
+        d.text((x + m / 2, y0 + m / 2 + 2 * u), c, font=mf, fill=INK, anchor="mm")
+    d.text((w / 2, top + 292 * u), sub, font=noto("medium", 32 * u), fill=(74, 79, 87), anchor="ms")
     return img
 
 
@@ -277,6 +319,10 @@ def make_results(words):
 
 
 def main():
+    if "--note-cover" in sys.argv:  # note の見出し画像（1280×670）だけを作る: python3 tools/make_og.py --note-cover 出力先.png
+        words = [json.loads(p.read_text(encoding="utf-8")) for p in sorted((ROOT / "data" / "words").glob("*.json"))]
+        site_og(words, w=1280, h=670).convert("RGB").save(sys.argv[sys.argv.index("--note-cover") + 1], optimize=True)
+        return
     words = [json.loads(p.read_text(encoding="utf-8")) for p in sorted((ROOT / "data" / "words").glob("*.json"))]
     OUT.mkdir(parents=True, exist_ok=True)
     make_results(words)
@@ -287,7 +333,7 @@ def main():
         note_og(n, {w['slug']: w for w in words}).convert("RGB").save(ndir / f"{n['slug']}.png", optimize=True)
     for w in words:
         word_og(w).convert("RGB").save(OUT / f"{w['slug']}.png", optimize=True)
-    site_og(words, ["その言葉、", "ほんとに同じ意味で", "使ってる？"], "流行ってるのに、意味がふわっとしてる言葉の辞典").convert("RGB").save(OUT / "site.png", optimize=True)
+    site_og(words).convert("RGB").save(OUT / "site.png", optimize=True)
     print(f"made {len(words) + 1} images -> {OUT}", file=sys.stderr)
 
 

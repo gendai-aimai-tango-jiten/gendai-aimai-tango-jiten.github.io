@@ -291,6 +291,10 @@ def sister_links():
 
 def page(title, desc, body, path="/", og="/og/site.png", cls="", ld=None):
     url = BASE_URL + path
+    if og == "/og/site.png" and (OUT / "og" / "site.png").exists():
+        # サイト全体の共有画像は中身から版の印を付ける（SNSが古い画像を覚えたままにならないように。2026-11-23）
+        import hashlib
+        og += "?v=" + hashlib.md5((OUT / "og" / "site.png").read_bytes()).hexdigest()[:8]
     full = title if title == SITE else f"{title}｜{SITE}"
     return f"""<!doctype html>
 <html lang="ja">
